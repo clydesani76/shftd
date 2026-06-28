@@ -15,7 +15,7 @@ export function Sidebar() {
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-ink-800/60 backdrop-blur-md lg:flex">
       <div className="flex h-16 items-center px-6">
-        <Link href="/dashboard">
+        <Link href="/" aria-label="SHFTD home">
           <Logo />
         </Link>
       </div>
