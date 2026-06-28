@@ -57,17 +57,49 @@ export function CampaignWizard() {
     basePct: 60,
   });
 
+  const [saving, setSaving] = useState(false);
+
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) =>
     setDraft((d) => ({ ...d, [k]: v }));
 
-  function finish() {
-    // TODO(supabase): insert into `campaigns` (+ marketplace listing) here.
-    // For the demo we just return to the campaigns list.
-    router.push("/campaigns");
-  }
-
   const base = Math.round((draft.budget * draft.basePct) / 100);
   const bonus = draft.budget - base;
+
+  // Split a comma-separated field into a clean string array.
+  const toList = (s: string) =>
+    s.split(",").map((x) => x.trim()).filter(Boolean);
+
+  async function finish() {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: draft.name,
+          goal: draft.goal,
+          path: draft.path,
+          narrativeAngle: draft.narrativeAngle,
+          targetAudience: draft.targetAudience,
+          offer: draft.offer,
+          deliverables: toList(draft.deliverables),
+          platforms: toList(draft.platforms),
+          creatorInstructions: draft.creatorInstructions,
+          timelineStart: draft.timelineStart || null,
+          timelineEnd: draft.timelineEnd || null,
+          kpis: toList(draft.kpis),
+          budget: draft.budget,
+          basePayPool: base,
+          performanceBonusPool: bonus,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to create campaign");
+      // Land on the campaigns list, where the new draft now appears.
+      router.push("/campaigns");
+    } catch {
+      setSaving(false);
+    }
+  }
 
   return (
     <div>
@@ -217,8 +249,9 @@ export function CampaignWizard() {
                 Next <ChevronRight className="h-4 w-4" />
               </Button>
             ) : (
-              <Button onClick={finish}>
-                <Rocket className="h-4 w-4" /> Create campaign
+              <Button onClick={finish} disabled={saving || !draft.name}>
+                <Rocket className="h-4 w-4" />
+                {saving ? "Creating…" : "Create campaign"}
               </Button>
             )}
           </div>

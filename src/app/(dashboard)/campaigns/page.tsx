@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/ui/misc";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge, PathBadge, StatusBadge } from "@/components/ui/badge";
-import { getCampaigns } from "@/lib/data";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import type { CampaignStatus } from "@/types";
+import type { Campaign, CampaignStatus } from "@/types";
 import { Plus, Megaphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,8 +22,18 @@ const FILTERS: (CampaignStatus | "all")[] = [
 ];
 
 export default function CampaignsPage() {
-  const all = getCampaigns();
   const [filter, setFilter] = useState<CampaignStatus | "all">("all");
+
+  // Campaigns come from the database (via /api/campaigns).
+  const { data: all = [] } = useQuery<Campaign[]>({
+    queryKey: ["campaigns"],
+    queryFn: async () => {
+      const res = await fetch("/api/campaigns");
+      const data = await res.json();
+      return data.campaigns ?? [];
+    },
+  });
+
   const campaigns = filter === "all" ? all : all.filter((c) => c.status === filter);
 
   return (

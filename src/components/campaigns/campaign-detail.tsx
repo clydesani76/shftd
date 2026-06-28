@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { PageHeader, ProgressBar } from "@/components/ui/misc";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageHeader, ProgressBar, EmptyState } from "@/components/ui/misc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,14 +15,13 @@ import {
 } from "@/components/ui/badge";
 import {
   getApplications,
-  getCampaign,
   getCopyVariants,
   getCreator,
   getMetricsForCampaign,
   getSubmissions,
 } from "@/lib/data";
 import { cn, formatCompact, formatCurrency, formatDate, titleCase } from "@/lib/utils";
-import type { Submission, SubmissionStatus } from "@/types";
+import type { Campaign, Submission, SubmissionStatus } from "@/types";
 import {
   Calendar,
   Users,
@@ -38,15 +38,38 @@ const TABS = ["Blueprint", "Applications", "Submissions", "Copy", "Performance"]
 type Tab = (typeof TABS)[number];
 
 export function CampaignDetail({ campaignId }: { campaignId: string }) {
-  const campaign = getCampaign(campaignId)!;
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("Blueprint");
-  const [status, setStatus] = useState(campaign.status);
 
-  const applications = getApplications(campaignId);
-  const copy = getCopyVariants(campaignId);
-  const metrics = getMetricsForCampaign(campaignId);
+  // Load the campaign from the API (real DB, with mock fallback).
+  const { data: campaign, isLoading } = useQuery<Campaign | null>({
+    queryKey: ["campaign", campaignId],
+    queryFn: async () => {
+      const res = await fetch(`/api/campaigns/${campaignId}`);
+      if (res.status === 404) return null;
+      const data = await res.json();
+      return data.campaign ?? null;
+    },
+  });
 
-  // Local submission state so review actions feel live in the demo.
+  // Persist status changes (Publish / Go live) to the database.
+  const statusMutation = useMutation({
+    mutationFn: async (status: Campaign["status"]) => {
+      const res = await fetch(`/api/campaigns/${campaignId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error("Failed to update status");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["campaign", campaignId] });
+      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+    },
+  });
+
+  // Local submission state so review actions feel live in the demo. (Kept as
+  // a hook above any early return so hook order stays stable.)
   const [submissions, setSubmissions] = useState<Submission[]>(
     getSubmissions(campaignId),
   );
@@ -56,6 +79,29 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
       prev.map((s) => (s.id === id ? { ...s, status: next } : s)),
     );
   }
+
+  if (isLoading) {
+    return <p className="text-slate-400">Loading campaign…</p>;
+  }
+  if (!campaign) {
+    return (
+      <EmptyState
+        icon={Megaphone}
+        title="Campaign not found"
+        description="It may have been removed, or the link is incorrect."
+        action={
+          <Link href="/campaigns">
+            <Button variant="outline">Back to campaigns</Button>
+          </Link>
+        }
+      />
+    );
+  }
+
+  const status = campaign.status;
+  const applications = getApplications(campaignId);
+  const copy = getCopyVariants(campaignId);
+  const metrics = getMetricsForCampaign(campaignId);
 
   return (
     <div>
@@ -72,12 +118,20 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
           <div className="flex items-center gap-2">
             <StatusBadge status={status} />
             {status === "draft" && (
-              <Button onClick={() => setStatus("published")}>
+              <Button
+                onClick={() => statusMutation.mutate("published")}
+                disabled={statusMutation.isPending}
+              >
                 <Megaphone className="h-4 w-4" /> Publish to marketplace
               </Button>
             )}
             {status === "published" && (
-              <Button onClick={() => setStatus("live")}>Go live</Button>
+              <Button
+                onClick={() => statusMutation.mutate("live")}
+                disabled={statusMutation.isPending}
+              >
+                Go live
+              </Button>
             )}
           </div>
         }

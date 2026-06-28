@@ -10,14 +10,10 @@
 // ─────────────────────────────────────────────────────────────
 
 import { createServiceSupabase } from "@/lib/supabase/server";
-import { COMPETITORS as MOCK_COMPETITORS, ORG as MOCK_ORG } from "@/lib/mock/data";
+import { COMPETITORS as MOCK_COMPETITORS } from "@/lib/mock/data";
 import { tempId } from "@/lib/utils";
+import { DEMO_ORG_ID, ensureDemoOrg } from "@/lib/db/org";
 import type { Competitor } from "@/types";
-
-// A single, stable demo org so inserted competitors always have a valid
-// parent row (the competitors table requires an org). Real multi-tenant org
-// resolution from the logged-in user is a later step.
-export const DEMO_ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 interface CompetitorRow {
   id: string;
@@ -39,22 +35,6 @@ function rowToCompetitor(r: CompetitorRow): Competitor {
     category: r.category ?? "",
     addedAt: r.added_at,
   };
-}
-
-// Make sure the demo org row exists before inserting competitors that
-// reference it (foreign key). Safe to call repeatedly.
-async function ensureDemoOrg(db: ReturnType<typeof createServiceSupabase>) {
-  if (!db) return;
-  await db.from("orgs").upsert(
-    {
-      id: DEMO_ORG_ID,
-      name: MOCK_ORG.name,
-      slug: MOCK_ORG.slug,
-      industry: MOCK_ORG.industry,
-      website: MOCK_ORG.website,
-    },
-    { onConflict: "id" },
-  );
 }
 
 export async function listCompetitors(): Promise<Competitor[]> {
