@@ -18,21 +18,26 @@ export function Logo({
 }) {
   const [useFallback, setUseFallback] = useState(false);
 
+  // Subtle hover: a soft brand glow + slight lift on the mark. Scale is
+  // gated behind motion-safe so reduced-motion users only get the glow.
+  const markFx =
+    "h-8 w-8 transition duration-300 ease-out group-hover:drop-shadow-[0_0_10px_rgba(108,92,231,0.45)] motion-safe:group-hover:scale-110";
+
   return (
-    <div className={cn("flex items-center gap-2.5", className)}>
+    <div className={cn("group flex items-center gap-2.5", className)}>
       {useFallback ? (
-        <LogoMark className="h-8 w-8" />
+        <LogoMark className={markFx} />
       ) : (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src="/logo.png"
           alt="SHFTD"
-          className="h-8 w-8 object-contain"
+          className={cn(markFx, "object-contain")}
           onError={() => setUseFallback(true)}
         />
       )}
       <div className="leading-none">
-        <span className="text-lg font-bold tracking-tight text-slate-900">
+        <span className="text-lg font-bold tracking-tight text-slate-900 transition-colors duration-300 group-hover:text-header">
           SHFTD
         </span>
         {showTagline && (
