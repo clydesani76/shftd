@@ -48,7 +48,7 @@ export default function LandingPage() {
           <Sparkles className="h-3.5 w-3.5 text-teal-600" />
           The Marketing Operating System
         </div>
-        <h1 className="text-balance text-4xl font-bold leading-tight text-slate-900 sm:text-6xl">
+        <h1 className="text-balance text-4xl font-bold leading-tight text-header sm:text-6xl">
           Stop chasing trends.
           <br />
           <span className="gradient-text">Start setting them.</span>
@@ -82,7 +82,7 @@ export default function LandingPage() {
             <p className="text-xs font-semibold uppercase tracking-widest text-teal-600">
               Safe &amp; Proven
             </p>
-            <h3 className="mt-2 text-xl font-semibold text-slate-900">
+            <h3 className="mt-2 text-xl font-semibold text-header">
               Optimization campaigns
             </h3>
             <p className="mt-2 text-sm text-slate-500">
@@ -94,7 +94,7 @@ export default function LandingPage() {
             <p className="text-xs font-semibold uppercase tracking-widest text-electric-600">
               Bold &amp; Original
             </p>
-            <h3 className="mt-2 text-xl font-semibold text-slate-900">
+            <h3 className="mt-2 text-xl font-semibold text-header">
               First-mover campaigns
             </h3>
             <p className="mt-2 text-sm text-slate-500">
@@ -107,7 +107,7 @@ export default function LandingPage() {
 
       {/* Layers */}
       <section className="relative z-10 mx-auto mt-20 max-w-6xl px-6 pb-24">
-        <h2 className="mb-8 text-center text-2xl font-semibold text-slate-900">
+        <h2 className="mb-8 text-center text-2xl font-semibold text-header">
           One system, end to end
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -116,7 +116,7 @@ export default function LandingPage() {
               <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-electric-500/10 text-electric-600">
                 <l.icon className="h-5 w-5" />
               </div>
-              <h3 className="font-semibold text-slate-900">{l.title}</h3>
+              <h3 className="font-semibold text-header">{l.title}</h3>
               <p className="mt-2 text-sm text-slate-500">{l.copy}</p>
             </Card>
           ))}
@@ -129,7 +129,7 @@ export default function LandingPage() {
           <p className="text-xs font-semibold uppercase tracking-widest text-teal-600">
             Why SHFTD is different
           </p>
-          <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+          <h2 className="mt-2 text-2xl font-semibold text-header">
             Not another marketplace or payout tool
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-500">
@@ -159,7 +159,7 @@ export default function LandingPage() {
             <p className="text-xs font-semibold uppercase tracking-widest text-electric-600">
               SHFTD
             </p>
-            <h3 className="mt-2 font-semibold text-slate-900">
+            <h3 className="mt-2 font-semibold text-header">
               The decision layer — your marketing brain
             </h3>
             <ul className="mt-3 space-y-2 text-sm text-slate-600">

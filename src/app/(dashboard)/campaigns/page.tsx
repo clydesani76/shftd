@@ -75,7 +75,7 @@ export default function CampaignsPage() {
                 <PathBadge path={c.path} />
                 <StatusBadge status={c.status} />
               </div>
-              <h3 className="font-semibold text-slate-900">{c.name}</h3>
+              <h3 className="font-semibold text-header">{c.name}</h3>
               <p className="mt-1 line-clamp-2 flex-1 text-sm text-slate-500">
                 {c.goal}
               </p>

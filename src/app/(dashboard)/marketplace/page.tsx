@@ -178,7 +178,7 @@ function OpenCampaignCard({
     <Card className="p-5">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h3 className="font-semibold text-slate-900">{campaign.name}</h3>
+          <h3 className="font-semibold text-header">{campaign.name}</h3>
           <p className="mt-1 text-sm text-slate-500">{campaign.goal}</p>
         </div>
         <Badge tone="green">{formatCurrency(campaign.budget, true)} budget</Badge>

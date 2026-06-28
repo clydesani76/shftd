@@ -139,7 +139,7 @@ function StrategyCard({
           <PathBadge path={strategy.path} />
           <RiskBadge risk={strategy.riskLevel} />
         </div>
-        <h2 className="mt-2 flex items-center gap-2 text-xl font-semibold text-slate-900">
+        <h2 className="mt-2 flex items-center gap-2 text-xl font-semibold text-header">
           {isProven ? (
             <Target className="h-5 w-5 text-teal-600" />
           ) : (

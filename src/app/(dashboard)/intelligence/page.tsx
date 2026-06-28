@@ -265,7 +265,7 @@ function InsightBucket({
   return (
     <div>
       <div className="mb-2 flex items-baseline justify-between">
-        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+        <h3 className="text-sm font-semibold text-header">{title}</h3>
         <span className="text-xs text-slate-500">{hint}</span>
       </div>
       <div className="space-y-3">

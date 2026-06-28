@@ -37,6 +37,11 @@ const config: Config = {
           DEFAULT: "#00e0d1", // teal accent
           glow: "#22f5e6",
         },
+        // Heading color: #6bb4e8 blended with black for a deep steel blue.
+        header: {
+          DEFAULT: "#2f5d7c",
+          light: "#6bb4e8",
+        },
         signal: {
           green: "#27e6a4",
           amber: "#ffb454",

@@ -26,7 +26,7 @@
     background-attachment: fixed;
   }
   h1, h2, h3, h4 {
-    @apply tracking-tight text-slate-900;
+    @apply tracking-tight text-header;
   }
   /* Thin scrollbars */
   ::-webkit-scrollbar {
@@ -54,9 +54,9 @@
   .ring-focus {
     @apply focus:outline-none focus:ring-2 focus:ring-electric-500/40 focus:ring-offset-2 focus:ring-offset-white;
   }
-  /* Faint grid background utility */
+  /* Grid background removed per design — kept as a no-op so existing
+     `bg-grid` usages don't break. */
   .bg-grid {
-    background-size: 32px 32px;
-    @apply bg-grid-faint;
+    background-image: none;
   }
 }
