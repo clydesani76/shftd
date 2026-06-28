@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageHeader, SectionLabel } from "@/components/ui/misc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getCampaign, getMemory } from "@/lib/data";
+import { getCampaign } from "@/lib/data";
 import { cn, timeAgo } from "@/lib/utils";
 import type { BrandMemoryNote, MemoryKind } from "@/types";
 import {
@@ -31,7 +32,34 @@ const KIND_META: Record<MemoryKind, { icon: React.ComponentType<{ className?: st
 };
 
 export default function MemoryPage() {
-  const [memory] = useState<BrandMemoryNote[]>(getMemory());
+  const queryClient = useQueryClient();
+  const [showAdd, setShowAdd] = useState(false);
+
+  // Brand learnings come from the database (via /api/memory).
+  const { data: memory = [] } = useQuery<BrandMemoryNote[]>({
+    queryKey: ["memory"],
+    queryFn: async () => {
+      const res = await fetch("/api/memory");
+      const data = await res.json();
+      return data.notes ?? [];
+    },
+  });
+
+  const addMutation = useMutation({
+    mutationFn: async (note: NewLearning) => {
+      const res = await fetch("/api/memory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(note),
+      });
+      if (!res.ok) throw new Error("Failed to add learning");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["memory"] });
+      setShowAdd(false);
+    },
+  });
 
   const wins = memory.filter((m) => m.outcome === "win").length;
   const losses = memory.filter((m) => m.outcome === "loss").length;
@@ -47,11 +75,19 @@ export default function MemoryPage() {
         title="Marketing Memory"
         subtitle="SHFTD's long-term advantage — every win and loss makes the next recommendation smarter."
         actions={
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setShowAdd((s) => !s)}>
             <Plus className="h-4 w-4" /> Add learning
           </Button>
         }
       />
+
+      {showAdd && (
+        <AddLearningForm
+          onAdd={(n) => addMutation.mutate(n)}
+          onCancel={() => setShowAdd(false)}
+          pending={addMutation.isPending}
+        />
+      )}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <Card className="p-4">
@@ -163,5 +199,109 @@ function OutcomeBadge({ outcome }: { outcome: BrandMemoryNote["outcome"] }) {
     <Badge>
       <Minus className="h-3 w-3" /> Neutral
     </Badge>
+  );
+}
+
+interface NewLearning {
+  kind: MemoryKind;
+  insight: string;
+  outcome: BrandMemoryNote["outcome"];
+  metricRef?: string;
+}
+
+function AddLearningForm({
+  onAdd,
+  onCancel,
+  pending,
+}: {
+  onAdd: (n: NewLearning) => void;
+  onCancel: () => void;
+  pending?: boolean;
+}) {
+  const [kind, setKind] = useState<MemoryKind>("winning_hook");
+  const [outcome, setOutcome] = useState<BrandMemoryNote["outcome"]>("win");
+  const [insight, setInsight] = useState("");
+  const [metricRef, setMetricRef] = useState("");
+
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Add a learning</CardTitle>
+        <p className="text-sm text-slate-400">
+          Capture what worked or failed. SHFTD uses these to bias future
+          strategy recommendations.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-300">
+              Type
+            </label>
+            <select
+              value={kind}
+              onChange={(e) => setKind(e.target.value as MemoryKind)}
+              className="h-10 w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 text-sm text-white ring-focus"
+            >
+              {(Object.keys(KIND_META) as MemoryKind[]).map((k) => (
+                <option key={k} value={k}>
+                  {KIND_META[k].label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-300">
+              Outcome
+            </label>
+            <select
+              value={outcome}
+              onChange={(e) =>
+                setOutcome(e.target.value as BrandMemoryNote["outcome"])
+              }
+              className="h-10 w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 text-sm text-white ring-focus"
+            >
+              <option value="win">Win</option>
+              <option value="loss">Loss</option>
+              <option value="neutral">Neutral</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-slate-300">
+            Insight
+          </label>
+          <textarea
+            value={insight}
+            onChange={(e) => setInsight(e.target.value)}
+            rows={3}
+            placeholder="e.g. Honest first-person hooks outperformed polished demos by ~40%."
+            className="w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 ring-focus"
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-slate-300">
+            Metric reference (optional)
+          </label>
+          <input
+            value={metricRef}
+            onChange={(e) => setMetricRef(e.target.value)}
+            placeholder="e.g. ROAS 3.73"
+            className="h-10 w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 text-sm text-white placeholder:text-slate-500 ring-focus"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            disabled={!insight || pending}
+            onClick={() => onAdd({ kind, outcome, insight, metricRef })}
+          >
+            {pending ? "Saving…" : "Save learning"}
+          </Button>
+          <Button variant="ghost" onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
