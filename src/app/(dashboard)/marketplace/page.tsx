@@ -1,19 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { PageHeader, SectionLabel } from "@/components/ui/misc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/misc";
-import {
-  getCampaign,
-  getCreators,
-  getMarketplace,
-} from "@/lib/data";
+import { getCreators } from "@/lib/data";
 import { useSession } from "@/components/session";
-import { formatCurrency, titleCase } from "@/lib/utils";
-import type { CreatorRole } from "@/types";
+import { cn, formatCurrency, titleCase } from "@/lib/utils";
+import type { Campaign, CreatorRole } from "@/types";
 import { Star, Send, Check, Sparkles } from "lucide-react";
 
 const ROLE_COPY: Record<CreatorRole, string> = {
@@ -21,14 +19,24 @@ const ROLE_COPY: Record<CreatorRole, string> = {
   amplifier: "Expands and scales the idea",
   closer: "Drives conversions",
 };
+const ROLES: CreatorRole[] = ["igniter", "amplifier", "closer"];
 
 export default function MarketplacePage() {
   const { role } = useSession();
-  const listings = getMarketplace();
   const creators = getCreators();
-  const [applied, setApplied] = useState<Set<string>>(new Set());
-
   const isCreator = role === "creator";
+
+  // Open campaigns are real campaigns that have been published or gone live.
+  const { data: campaigns = [] } = useQuery<Campaign[]>({
+    queryKey: ["campaigns"],
+    queryFn: async () => {
+      const res = await fetch("/api/campaigns");
+      return (await res.json()).campaigns ?? [];
+    },
+  });
+  const openCampaigns = campaigns.filter(
+    (c) => c.status === "published" || c.status === "live",
+  );
 
   return (
     <div>
@@ -56,56 +64,15 @@ export default function MarketplacePage() {
         <div>
           <SectionLabel>Open campaigns</SectionLabel>
           <div className="space-y-3">
-            {listings.map((m) => {
-              const camp = getCampaign(m.campaignId);
-              if (!camp) return null;
-              const has = applied.has(m.id);
-              return (
-                <Card key={m.id} className="p-5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h3 className="font-semibold text-white">{camp.name}</h3>
-                      <p className="mt-1 text-sm text-slate-400">{camp.goal}</p>
-                    </div>
-                    <Badge tone="green">
-                      {formatCurrency(m.payRange.min)}–{formatCurrency(m.payRange.max)}
-                    </Badge>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-1">
-                    {m.rolesNeeded.map((r) => (
-                      <Badge key={r} tone="electric">
-                        {titleCase(r)}
-                      </Badge>
-                    ))}
-                    {camp.platforms.map((p) => (
-                      <Badge key={p}>{p}</Badge>
-                    ))}
-                  </div>
-                  {isCreator && (
-                    <div className="mt-4">
-                      <Button
-                        size="sm"
-                        variant={has ? "secondary" : "primary"}
-                        disabled={has}
-                        onClick={() =>
-                          setApplied((prev) => new Set(prev).add(m.id))
-                        }
-                      >
-                        {has ? (
-                          <>
-                            <Check className="h-3.5 w-3.5" /> Applied
-                          </>
-                        ) : (
-                          <>
-                            <Send className="h-3.5 w-3.5" /> Apply
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                </Card>
-              );
-            })}
+            {openCampaigns.length === 0 && (
+              <p className="rounded-lg border border-dashed border-white/10 p-4 text-sm text-slate-500">
+                No open campaigns yet. Publish a campaign (and set it live) to
+                open it to creators.
+              </p>
+            )}
+            {openCampaigns.map((camp) => (
+              <OpenCampaignCard key={camp.id} campaign={camp} isCreator={isCreator} />
+            ))}
           </div>
         </div>
 
@@ -168,6 +135,98 @@ export default function MarketplacePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// A single open-campaign card. Creators pick a role and apply; if they're not
+// logged in, the server returns 401 and we send them to sign in.
+function OpenCampaignCard({
+  campaign,
+  isCreator,
+}: {
+  campaign: Campaign;
+  isCreator: boolean;
+}) {
+  const router = useRouter();
+  const [selectedRole, setSelectedRole] = useState<CreatorRole>("igniter");
+  const [applied, setApplied] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  async function apply() {
+    setPending(true);
+    try {
+      const res = await fetch("/api/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ campaignId: campaign.id, role: selectedRole }),
+      });
+      if (res.status === 401) {
+        // Not signed in — send the creator to log in.
+        router.push("/login");
+        return;
+      }
+      if (!res.ok) throw new Error("Failed to apply");
+      setApplied(true);
+    } catch {
+      // leave un-applied so they can retry
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h3 className="font-semibold text-white">{campaign.name}</h3>
+          <p className="mt-1 text-sm text-slate-400">{campaign.goal}</p>
+        </div>
+        <Badge tone="green">{formatCurrency(campaign.budget, true)} budget</Badge>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-1">
+        {campaign.platforms.map((p) => (
+          <Badge key={p}>{p}</Badge>
+        ))}
+      </div>
+
+      {isCreator && (
+        <div className="mt-4 flex items-center gap-2">
+          <div className="flex gap-1">
+            {ROLES.map((r) => (
+              <button
+                key={r}
+                onClick={() => setSelectedRole(r)}
+                disabled={applied}
+                className={cn(
+                  "rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors",
+                  selectedRole === r
+                    ? "border-electric-400/60 bg-electric-500/15 text-white"
+                    : "border-white/10 text-slate-400 hover:text-white",
+                )}
+              >
+                {titleCase(r)}
+              </button>
+            ))}
+          </div>
+          <Button
+            size="sm"
+            variant={applied ? "secondary" : "primary"}
+            disabled={applied || pending}
+            onClick={apply}
+          >
+            {applied ? (
+              <>
+                <Check className="h-3.5 w-3.5" /> Applied
+              </>
+            ) : (
+              <>
+                <Send className="h-3.5 w-3.5" /> {pending ? "Applying…" : "Apply"}
+              </>
+            )}
+          </Button>
+        </div>
+      )}
+    </Card>
   );
 }
 

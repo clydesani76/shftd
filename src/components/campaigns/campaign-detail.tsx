@@ -14,11 +14,23 @@ import {
   SubmissionBadge,
 } from "@/components/ui/badge";
 import {
-  getApplications,
   getCreator,
   getMetricsForCampaign,
   getSubmissions,
 } from "@/lib/data";
+
+// Flattened application shape returned by /api/applications.
+interface AppView {
+  id: string;
+  campaignId: string;
+  creatorId: string;
+  creatorName: string;
+  trustScore: number;
+  role: import("@/types").CreatorRole;
+  status: import("@/types").ApplicationStatus;
+  pitch: string;
+  appliedAt: string;
+}
 import { cn, formatCompact, formatCurrency, formatDate, titleCase } from "@/lib/utils";
 import type { Campaign, CopyVariant, Submission, SubmissionStatus } from "@/types";
 import {
@@ -67,6 +79,16 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
     },
   });
 
+  // Real applications for this campaign (from the database).
+  const { data: applications = [] } = useQuery<AppView[]>({
+    queryKey: ["applications", campaignId],
+    queryFn: async () => {
+      const res = await fetch(`/api/applications?campaignId=${campaignId}`);
+      const data = await res.json();
+      return data.applications ?? [];
+    },
+  });
+
   // Saved AI copy attached to this campaign (from the database).
   const { data: copy = [] } = useQuery<CopyVariant[]>({
     queryKey: ["copy", campaignId],
@@ -108,7 +130,6 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
   }
 
   const status = campaign.status;
-  const applications = getApplications(campaignId);
   const metrics = getMetricsForCampaign(campaignId);
 
   return (
@@ -257,22 +278,23 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
       {tab === "Applications" && (
         <div className="space-y-3">
           {applications.map((a) => {
-            const creator = getCreator(a.creatorId);
             return (
               <Card key={a.id} className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <Avatar name={creator?.name ?? "?"} />
+                    <Avatar name={a.creatorName} />
                     <div>
-                      <p className="font-medium text-white">{creator?.name}</p>
+                      <p className="font-medium text-white">{a.creatorName}</p>
                       <p className="text-xs text-slate-500">
-                        {titleCase(a.role)} · Trust {creator?.trustScore}
+                        {titleCase(a.role)} · Trust {a.trustScore}
                       </p>
                     </div>
                   </div>
                   <AppStatusBadge status={a.status} />
                 </div>
-                <p className="mt-3 text-sm text-slate-400">{a.pitch}</p>
+                {a.pitch && (
+                  <p className="mt-3 text-sm text-slate-400">{a.pitch}</p>
+                )}
                 {a.status === "applied" && (
                   <div className="mt-3 flex gap-2">
                     <Button size="sm">Accept</Button>
