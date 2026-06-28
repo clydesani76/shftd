@@ -7,12 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge, InsightBadge, PathBadge, StatusBadge } from "@/components/ui/badge";
 import { TrendArea } from "@/components/charts/charts";
+import { useQuery } from "@tanstack/react-query";
 import {
-  getCampaigns,
   getInsights,
   getMetrics,
   getRecommendations,
 } from "@/lib/data";
+import type { Campaign } from "@/types";
 import { formatCompact, formatCurrency, timeAgo } from "@/lib/utils";
 import {
   Eye,
@@ -36,7 +37,16 @@ const TREND = [
 ];
 
 export function BusinessDashboard() {
-  const campaigns = getCampaigns();
+  // Campaigns are real (from the database); insights, recommendations and
+  // performance metrics remain illustrative until those modules are migrated.
+  const { data: campaigns = [] } = useQuery<Campaign[]>({
+    queryKey: ["campaigns"],
+    queryFn: async () => {
+      const res = await fetch("/api/campaigns");
+      const data = await res.json();
+      return data.campaigns ?? [];
+    },
+  });
   const insights = getInsights();
   const recs = getRecommendations();
   const metrics = getMetrics();

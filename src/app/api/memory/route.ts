@@ -1,3 +1,6 @@
+// Always run on each request so reads/writes reflect the live database.
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { addMemory, listMemory, type NewMemory } from "@/lib/db/memory";
 

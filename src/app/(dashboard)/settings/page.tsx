@@ -1,23 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageHeader, SectionLabel } from "@/components/ui/misc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getBusinessProfile, getOrg } from "@/lib/data";
+import { getOrg } from "@/lib/data";
 import { config } from "@/lib/config";
 import { useSession } from "@/components/session";
+import type { BusinessProfile } from "@/types";
 import { Check, X } from "lucide-react";
 
 export default function SettingsPage() {
   const { user } = useSession();
   const org = getOrg();
-  const profile = getBusinessProfile();
+  const queryClient = useQueryClient();
 
-  const [brandVoice, setBrandVoice] = useState(profile.brandVoice);
-  const [audience, setAudience] = useState(profile.targetAudience);
-  const [budget, setBudget] = useState(profile.monthlyBudget);
+  // Load the saved brand profile from the database.
+  const { data: profile } = useQuery<BusinessProfile>({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const res = await fetch("/api/profile");
+      const data = await res.json();
+      return data.profile;
+    },
+  });
+
+  const [brandVoice, setBrandVoice] = useState("");
+  const [audience, setAudience] = useState("");
+  const [budget, setBudget] = useState(0);
+  const [saved, setSaved] = useState(false);
+
+  // Seed the form once the profile arrives.
+  useEffect(() => {
+    if (profile) {
+      setBrandVoice(profile.brandVoice);
+      setAudience(profile.targetAudience);
+      setBudget(profile.monthlyBudget);
+    }
+  }, [profile]);
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          brandVoice,
+          targetAudience: audience,
+          monthlyBudget: budget,
+          primaryGoals: profile?.primaryGoals,
+          channels: profile?.channels,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    },
+  });
 
   const integrations = [
     { name: "Supabase (database & auth)", ok: config.hasSupabase },
@@ -76,14 +121,23 @@ export default function SettingsPage() {
               <div>
                 <SectionLabel>Channels</SectionLabel>
                 <div className="flex flex-wrap gap-1">
-                  {profile.channels.map((c) => (
+                  {(profile?.channels ?? []).map((c) => (
                     <Badge key={c} tone="cyber">
                       {c}
                     </Badge>
                   ))}
                 </div>
               </div>
-              <Button>Save changes</Button>
+              <Button
+                onClick={() => saveMutation.mutate()}
+                disabled={saveMutation.isPending}
+              >
+                {saveMutation.isPending
+                  ? "Saving…"
+                  : saved
+                    ? "Saved ✓"
+                    : "Save changes"}
+              </Button>
             </CardContent>
           </Card>
 
