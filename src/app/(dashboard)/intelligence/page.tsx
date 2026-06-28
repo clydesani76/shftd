@@ -2,39 +2,55 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageHeader, SectionLabel, ProgressBar, EmptyState } from "@/components/ui/misc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge, InsightBadge } from "@/components/ui/badge";
-import {
-  getCompetitors,
-  getEvidence,
-  getEvidenceForCompetitor,
-  getInsights,
-} from "@/lib/data";
-import { tempId, timeAgo, titleCase } from "@/lib/utils";
+import { getEvidence, getEvidenceForCompetitor, getInsights } from "@/lib/data";
+import { timeAgo, titleCase } from "@/lib/utils";
 import type { Competitor, Insight } from "@/types";
 import { Plus, Radar, ArrowRight, Sparkles, Globe, AtSign } from "lucide-react";
 
+type NewCompetitor = Omit<Competitor, "id" | "orgId" | "addedAt">;
+
 export default function IntelligencePage() {
   const router = useRouter();
-  const [competitors, setCompetitors] = useState<Competitor[]>(getCompetitors());
+  const queryClient = useQueryClient();
   const [insights] = useState<Insight[]>(getInsights());
   const [showAdd, setShowAdd] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
 
-  function addCompetitor(c: Omit<Competitor, "id" | "orgId" | "addedAt">) {
-    // TODO(supabase): insert into ci_competitors and re-fetch.
-    setCompetitors((prev) => [
-      {
-        ...c,
-        id: tempId("comp"),
-        orgId: "org_nova",
-        addedAt: new Date().toISOString(),
-      },
-      ...prev,
-    ]);
-    setShowAdd(false);
+  // Competitors now come from the database (via /api/competitors). React
+  // Query handles loading + caching; adds persist to Supabase.
+  const { data: competitors = [] } = useQuery<Competitor[]>({
+    queryKey: ["competitors"],
+    queryFn: async () => {
+      const res = await fetch("/api/competitors");
+      const data = await res.json();
+      return data.competitors ?? [];
+    },
+  });
+
+  const addMutation = useMutation({
+    mutationFn: async (c: NewCompetitor) => {
+      const res = await fetch("/api/competitors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(c),
+      });
+      if (!res.ok) throw new Error("Failed to add competitor");
+      return res.json();
+    },
+    onSuccess: () => {
+      // Re-pull the saved list from the database.
+      queryClient.invalidateQueries({ queryKey: ["competitors"] });
+      setShowAdd(false);
+    },
+  });
+
+  function addCompetitor(c: NewCompetitor) {
+    addMutation.mutate(c);
   }
 
   const buckets = {
@@ -68,7 +84,13 @@ export default function IntelligencePage() {
         }
       />
 
-      {showAdd && <AddCompetitorForm onAdd={addCompetitor} onCancel={() => setShowAdd(false)} />}
+      {showAdd && (
+        <AddCompetitorForm
+          onAdd={addCompetitor}
+          onCancel={() => setShowAdd(false)}
+          pending={addMutation.isPending}
+        />
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Competitors + evidence */}
@@ -219,9 +241,11 @@ function InsightBucket({
 function AddCompetitorForm({
   onAdd,
   onCancel,
+  pending,
 }: {
   onAdd: (c: Omit<Competitor, "id" | "orgId" | "addedAt">) => void;
   onCancel: () => void;
+  pending?: boolean;
 }) {
   const [brandName, setBrandName] = useState("");
   const [domain, setDomain] = useState("");
@@ -246,10 +270,10 @@ function AddCompetitorForm({
         </div>
         <div className="mt-4 flex gap-2">
           <Button
-            disabled={!brandName}
+            disabled={!brandName || pending}
             onClick={() => onAdd({ brandName, domain, socialHandle, category })}
           >
-            Add competitor
+            {pending ? "Saving…" : "Add competitor"}
           </Button>
           <Button variant="ghost" onClick={onCancel}>
             Cancel
