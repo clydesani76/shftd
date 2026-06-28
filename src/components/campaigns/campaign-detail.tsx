@@ -112,7 +112,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
   }
 
   if (isLoading) {
-    return <p className="text-slate-400">Loading campaign…</p>;
+    return <p className="text-slate-500">Loading campaign…</p>;
   }
   if (!campaign) {
     return (
@@ -136,7 +136,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
     <div>
       <Link
         href="/campaigns"
-        className="mb-3 inline-flex items-center gap-1 text-sm text-slate-400 hover:text-white"
+        className="mb-3 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900"
       >
         ← All campaigns
       </Link>
@@ -174,14 +174,14 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex gap-1 border-b border-white/5">
+      <div className="mb-6 flex gap-1 border-b border-slate-200">
         {TABS.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={cn(
               "relative px-4 py-2 text-sm font-medium transition-colors",
-              tab === t ? "text-white" : "text-slate-400 hover:text-white",
+              tab === t ? "text-slate-900" : "text-slate-500 hover:text-slate-900",
             )}
           >
             {t}
@@ -237,7 +237,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                   <Calendar className="h-4 w-4 text-slate-500" /> Timeline
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-slate-300">
+              <CardContent className="text-sm text-slate-600">
                 {formatDate(campaign.timelineStart)} → {formatDate(campaign.timelineEnd)}
               </CardContent>
             </Card>
@@ -247,19 +247,19 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-end justify-between">
-                  <span className="text-2xl font-semibold text-white">
+                  <span className="text-2xl font-semibold text-slate-900">
                     {formatCurrency(campaign.budget)}
                   </span>
                 </div>
                 <div>
-                  <div className="mb-1 flex justify-between text-xs text-slate-400">
+                  <div className="mb-1 flex justify-between text-xs text-slate-500">
                     <span>Base pay pool</span>
                     <span>{formatCurrency(campaign.basePayPool)}</span>
                   </div>
                   <ProgressBar value={campaign.basePayPool} max={campaign.budget} />
                 </div>
                 <div>
-                  <div className="mb-1 flex justify-between text-xs text-slate-400">
+                  <div className="mb-1 flex justify-between text-xs text-slate-500">
                     <span>Performance bonus</span>
                     <span>{formatCurrency(campaign.performanceBonusPool)}</span>
                   </div>
@@ -284,7 +284,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                   <div className="flex items-center gap-3">
                     <Avatar name={a.creatorName} />
                     <div>
-                      <p className="font-medium text-white">{a.creatorName}</p>
+                      <p className="font-medium text-slate-900">{a.creatorName}</p>
                       <p className="text-xs text-slate-500">
                         {titleCase(a.role)} · Trust {a.trustScore}
                       </p>
@@ -293,7 +293,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                   <AppStatusBadge status={a.status} />
                 </div>
                 {a.pitch && (
-                  <p className="mt-3 text-sm text-slate-400">{a.pitch}</p>
+                  <p className="mt-3 text-sm text-slate-500">{a.pitch}</p>
                 )}
                 {a.status === "applied" && (
                   <div className="mt-3 flex gap-2">
@@ -307,7 +307,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
             );
           })}
           {applications.length === 0 && (
-            <Card className="p-8 text-center text-slate-400">
+            <Card className="p-8 text-center text-slate-500">
               <Users className="mx-auto mb-2 h-6 w-6 text-slate-600" />
               No applications yet. Publish to the marketplace to attract creators.
             </Card>
@@ -325,13 +325,13 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                   <div className="flex items-center gap-3">
                     <Avatar name={creator?.name ?? "?"} />
                     <div>
-                      <p className="font-medium text-white">{creator?.name}</p>
+                      <p className="font-medium text-slate-900">{creator?.name}</p>
                       {s.contentUrl && (
                         <a
                           href={s.contentUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-electric-300 hover:underline"
+                          className="inline-flex items-center gap-1 text-xs text-electric-600 hover:underline"
                         >
                           View content <ExternalLink className="h-3 w-3" />
                         </a>
@@ -340,9 +340,9 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                   </div>
                   <SubmissionBadge status={s.status} />
                 </div>
-                <p className="mt-3 text-sm text-slate-400">{s.note}</p>
+                <p className="mt-3 text-sm text-slate-500">{s.note}</p>
                 {s.reviewerNote && (
-                  <p className="mt-1 text-xs text-electric-300">
+                  <p className="mt-1 text-xs text-electric-600">
                     Reviewer: {s.reviewerNote}
                   </p>
                 )}
@@ -371,7 +371,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
             );
           })}
           {submissions.length === 0 && (
-            <Card className="p-8 text-center text-slate-400">
+            <Card className="p-8 text-center text-slate-500">
               <FileText className="mx-auto mb-2 h-6 w-6 text-slate-600" />
               No submissions yet.
             </Card>
@@ -385,9 +385,9 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
             <Card key={c.id} className="p-4">
               <div className="mb-2 flex items-center justify-between">
                 <Badge tone="electric">{titleCase(c.type)}</Badge>
-                <span className="text-xs text-slate-400">Score {c.score}</span>
+                <span className="text-xs text-slate-500">Score {c.score}</span>
               </div>
-              <p className="text-sm text-slate-200">{c.content}</p>
+              <p className="text-sm text-slate-700">{c.content}</p>
               <div className="mt-2 text-xs text-slate-500">
                 {c.platform} · {c.tone}
               </div>
@@ -414,7 +414,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
         </div>
       )}
       {tab === "Performance" && !metrics && (
-        <Card className="p-8 text-center text-slate-400">
+        <Card className="p-8 text-center text-slate-500">
           <BarChart3 className="mx-auto mb-2 h-6 w-6 text-slate-600" />
           No performance data yet — metrics appear once the campaign goes live.
         </Card>
@@ -429,7 +429,7 @@ function Field({ label, value }: { label: string; value: string }) {
       <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-500">
         {label}
       </p>
-      <p className="text-sm text-slate-300">{value}</p>
+      <p className="text-sm text-slate-600">{value}</p>
     </div>
   );
 }
@@ -446,7 +446,7 @@ function Metric({
   return (
     <Card className="p-4">
       <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
-      <p className={cn("mt-1 text-xl font-semibold", accent ? "text-cyber" : "text-white")}>
+      <p className={cn("mt-1 text-xl font-semibold", accent ? "text-teal-600" : "text-slate-900")}>
         {value}
       </p>
     </Card>

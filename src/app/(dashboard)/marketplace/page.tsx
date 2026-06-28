@@ -53,8 +53,8 @@ export default function MarketplacePage() {
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
         {(Object.keys(ROLE_COPY) as CreatorRole[]).map((r) => (
           <Card key={r} className="p-4">
-            <p className="font-medium text-white">{titleCase(r)}</p>
-            <p className="mt-1 text-xs text-slate-400">{ROLE_COPY[r]}</p>
+            <p className="font-medium text-slate-900">{titleCase(r)}</p>
+            <p className="mt-1 text-xs text-slate-500">{ROLE_COPY[r]}</p>
           </Card>
         ))}
       </div>
@@ -65,7 +65,7 @@ export default function MarketplacePage() {
           <SectionLabel>Open campaigns</SectionLabel>
           <div className="space-y-3">
             {openCampaigns.length === 0 && (
-              <p className="rounded-lg border border-dashed border-white/10 p-4 text-sm text-slate-500">
+              <p className="rounded-lg border border-dashed border-slate-200 p-4 text-sm text-slate-500">
                 No open campaigns yet. Publish a campaign (and set it live) to
                 open it to creators.
               </p>
@@ -90,16 +90,16 @@ export default function MarketplacePage() {
                       {c.name.split(" ").map((n) => n[0]).join("")}
                     </div>
                     <div>
-                      <p className="font-medium text-white">{c.name}</p>
+                      <p className="font-medium text-slate-900">{c.name}</p>
                       <p className="text-xs text-slate-500">{c.niches.join(" · ")}</p>
                     </div>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-sm font-medium text-signal-amber">
+                  <span className="inline-flex items-center gap-1 text-sm font-medium text-amber-600">
                     <Star className="h-3.5 w-3.5 fill-signal-amber" /> {c.trustScore}
                   </span>
                 </div>
 
-                <p className="mt-3 text-sm text-slate-400">{c.bio}</p>
+                <p className="mt-3 text-sm text-slate-500">{c.bio}</p>
 
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                   <Stat label="Followers" value={shortFollowers(c)} />
@@ -178,8 +178,8 @@ function OpenCampaignCard({
     <Card className="p-5">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h3 className="font-semibold text-white">{campaign.name}</h3>
-          <p className="mt-1 text-sm text-slate-400">{campaign.goal}</p>
+          <h3 className="font-semibold text-slate-900">{campaign.name}</h3>
+          <p className="mt-1 text-sm text-slate-500">{campaign.goal}</p>
         </div>
         <Badge tone="green">{formatCurrency(campaign.budget, true)} budget</Badge>
       </div>
@@ -200,8 +200,8 @@ function OpenCampaignCard({
                 className={cn(
                   "rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors",
                   selectedRole === r
-                    ? "border-electric-400/60 bg-electric-500/15 text-white"
-                    : "border-white/10 text-slate-400 hover:text-white",
+                    ? "border-electric-400/60 bg-electric-500/15 text-slate-900"
+                    : "border-slate-200 text-slate-500 hover:text-slate-900",
                 )}
               >
                 {titleCase(r)}
@@ -240,9 +240,9 @@ function shortFollowers(c: ReturnType<typeof getCreators>[number]) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/5 bg-ink-800/50 p-2">
+    <div className="rounded-lg border border-slate-200 bg-ink-800/50 p-2">
       <p className="text-xs text-slate-500">{label}</p>
-      <p className="text-sm font-semibold text-white">{value}</p>
+      <p className="text-sm font-semibold text-slate-900">{value}</p>
     </div>
   );
 }

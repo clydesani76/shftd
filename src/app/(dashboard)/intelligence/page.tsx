@@ -152,12 +152,12 @@ export default function IntelligencePage() {
                 <Card key={c.id} className="p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="font-medium text-white">{c.brandName}</p>
+                      <p className="font-medium text-slate-900">{c.brandName}</p>
                       <p className="text-xs text-slate-500">{c.category}</p>
                     </div>
                     <Badge>{signals.length} signals</Badge>
                   </div>
-                  <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-400">
+                  <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
                     {c.domain && (
                       <span className="inline-flex items-center gap-1">
                         <Globe className="h-3 w-3" /> {c.domain}
@@ -187,7 +187,7 @@ export default function IntelligencePage() {
           </div>
           <div className="space-y-2">
             {evidence.length === 0 && (
-              <p className="rounded-lg border border-dashed border-white/10 p-3 text-xs text-slate-500">
+              <p className="rounded-lg border border-dashed border-slate-200 p-3 text-xs text-slate-500">
                 No evidence captured yet. Add a competitor, then attach the ads,
                 hooks, or offers you observe.
               </p>
@@ -198,7 +198,7 @@ export default function IntelligencePage() {
                   <Badge tone="cyber">{titleCase(e.type)}</Badge>
                   <span className="text-xs text-slate-500">{e.channel}</span>
                 </div>
-                <p className="line-clamp-2 text-xs text-slate-300">{e.content}</p>
+                <p className="line-clamp-2 text-xs text-slate-600">{e.content}</p>
               </Card>
             ))}
           </div>
@@ -265,7 +265,7 @@ function InsightBucket({
   return (
     <div>
       <div className="mb-2 flex items-baseline justify-between">
-        <h3 className="text-sm font-semibold text-white">{title}</h3>
+        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
         <span className="text-xs text-slate-500">{hint}</span>
       </div>
       <div className="space-y-3">
@@ -279,14 +279,14 @@ function InsightBucket({
                 <span className="text-xs text-slate-500">{timeAgo(i.createdAt)}</span>
               </div>
             </div>
-            <p className="font-medium text-white">{i.title}</p>
-            <p className="mt-1 text-sm text-slate-400">{i.explanation}</p>
+            <p className="font-medium text-slate-900">{i.title}</p>
+            <p className="mt-1 text-sm text-slate-500">{i.explanation}</p>
 
-            <div className="mt-3 rounded-lg border border-white/5 bg-ink-800/50 p-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-electric-300">
+            <div className="mt-3 rounded-lg border border-slate-200 bg-ink-800/50 p-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-electric-600">
                 Recommendation
               </p>
-              <p className="mt-1 text-sm text-slate-300">{i.recommendation}</p>
+              <p className="mt-1 text-sm text-slate-600">{i.recommendation}</p>
             </div>
 
             <div className="mt-3 flex items-center justify-between">
@@ -295,7 +295,7 @@ function InsightBucket({
                 <div className="w-24">
                   <ProgressBar value={i.confidence} tone="cyber" />
                 </div>
-                <span className="text-xs text-slate-400">{i.confidence}%</span>
+                <span className="text-xs text-slate-500">{i.confidence}%</span>
               </div>
               <Button size="sm" onClick={onTurnIntoStrategy}>
                 Turn into strategy <ArrowRight className="h-3.5 w-3.5" />
@@ -326,7 +326,7 @@ function AddCompetitorForm({
     <Card className="mb-6">
       <CardHeader>
         <CardTitle>Add a competitor</CardTitle>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-500">
           Track by brand name, domain, or social handle. Evidence and AI
           insights build from here.
         </p>
@@ -384,7 +384,7 @@ function AddEvidenceForm({
     <Card className="mb-6">
       <CardHeader>
         <CardTitle>Add evidence</CardTitle>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-500">
           Capture a competitor signal — an ad, hook, offer, or caption you
           observed. These feed the AI analysis.
         </p>
@@ -392,13 +392,13 @@ function AddEvidenceForm({
       <CardContent>
         <div className="grid gap-3 sm:grid-cols-3">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-300">
+            <label className="mb-1.5 block text-sm font-medium text-slate-600">
               Competitor
             </label>
             <select
               value={competitorId}
               onChange={(e) => setCompetitorId(e.target.value)}
-              className="h-10 w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 text-sm text-white ring-focus"
+              className="h-10 w-full rounded-lg border border-slate-200 bg-ink-700/60 px-3 text-sm text-slate-900 ring-focus"
             >
               {competitors.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -408,13 +408,13 @@ function AddEvidenceForm({
             </select>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-300">
+            <label className="mb-1.5 block text-sm font-medium text-slate-600">
               Type
             </label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value as EvidenceType)}
-              className="h-10 w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 text-sm text-white ring-focus"
+              className="h-10 w-full rounded-lg border border-slate-200 bg-ink-700/60 px-3 text-sm text-slate-900 ring-focus"
             >
               {EVIDENCE_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -431,7 +431,7 @@ function AddEvidenceForm({
           />
         </div>
         <div className="mt-3">
-          <label className="mb-1.5 block text-sm font-medium text-slate-300">
+          <label className="mb-1.5 block text-sm font-medium text-slate-600">
             What you observed
           </label>
           <textarea
@@ -439,7 +439,7 @@ function AddEvidenceForm({
             onChange={(e) => setContent(e.target.value)}
             rows={3}
             placeholder="e.g. POV transformation hook driving 2M views…"
-            className="w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 ring-focus"
+            className="w-full rounded-lg border border-slate-200 bg-ink-700/60 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 ring-focus"
           />
         </div>
         <div className="mt-4 flex gap-2">
@@ -471,12 +471,12 @@ function Input({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-slate-300">{label}</label>
+      <label className="mb-1.5 block text-sm font-medium text-slate-600">{label}</label>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-10 w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 text-sm text-white placeholder:text-slate-500 ring-focus"
+        className="h-10 w-full rounded-lg border border-slate-200 bg-ink-700/60 px-3 text-sm text-slate-900 placeholder:text-slate-500 ring-focus"
       />
     </div>
   );

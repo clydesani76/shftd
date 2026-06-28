@@ -110,7 +110,7 @@ export function BusinessDashboard() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Reach momentum</CardTitle>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               Cumulative views (thousands) across active campaigns
             </p>
           </CardHeader>
@@ -123,21 +123,21 @@ export function BusinessDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Next best actions</CardTitle>
-            <p className="text-sm text-slate-400">AI-recommended moves</p>
+            <p className="text-sm text-slate-500">AI-recommended moves</p>
           </CardHeader>
           <CardContent className="space-y-3">
             {recs.map((r) => (
               <Link
                 key={r.id}
                 href="/strategy"
-                className="block rounded-lg border border-white/5 bg-ink-800/50 p-3 transition-colors hover:border-white/10"
+                className="block rounded-lg border border-slate-200 bg-ink-800/50 p-3 transition-colors hover:border-slate-200"
               >
                 <div className="mb-1 flex items-center justify-between gap-2">
                   <PathBadge path={r.path} />
                   <ArrowRight className="h-3.5 w-3.5 text-slate-500" />
                 </div>
-                <p className="text-sm font-medium text-white">{r.title}</p>
-                <p className="mt-1 line-clamp-2 text-xs text-slate-400">
+                <p className="text-sm font-medium text-slate-900">{r.title}</p>
+                <p className="mt-1 line-clamp-2 text-xs text-slate-500">
                   {r.concept}
                 </p>
               </Link>
@@ -159,8 +159,8 @@ export function BusinessDashboard() {
                     {timeAgo(i.createdAt)}
                   </span>
                 </div>
-                <p className="text-sm font-medium text-white">{i.title}</p>
-                <p className="mt-1 line-clamp-2 text-xs text-slate-400">
+                <p className="text-sm font-medium text-slate-900">{i.title}</p>
+                <p className="mt-1 line-clamp-2 text-xs text-slate-500">
                   {i.recommendation}
                 </p>
               </Card>
@@ -182,7 +182,7 @@ export function BusinessDashboard() {
                 <Link key={c.id} href={`/campaigns/${c.id}`}>
                   <Card hover className="p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-medium text-white">{c.name}</p>
+                      <p className="text-sm font-medium text-slate-900">{c.name}</p>
                       <StatusBadge status={c.status} />
                     </div>
                     <div className="mt-2 flex items-center gap-2">

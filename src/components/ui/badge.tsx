@@ -25,13 +25,13 @@ export function Badge({
     | "violet";
 }) {
   const tones: Record<string, string> = {
-    neutral: "bg-white/5 text-slate-300 border-white/10",
-    electric: "bg-electric-500/15 text-electric-200 border-electric-500/30",
-    cyber: "bg-cyber/10 text-cyber border-cyber/30",
-    green: "bg-signal-green/10 text-signal-green border-signal-green/30",
-    amber: "bg-signal-amber/10 text-signal-amber border-signal-amber/30",
-    red: "bg-signal-red/10 text-signal-red border-signal-red/30",
-    violet: "bg-electric-500/15 text-electric-200 border-electric-500/30",
+    neutral: "bg-slate-100 text-slate-600 border-slate-200",
+    electric: "bg-electric-500/15 text-electric-700 border-electric-500/30",
+    cyber: "bg-cyber/10 text-teal-600 border-cyber/30",
+    green: "bg-signal-green/10 text-emerald-600 border-signal-green/30",
+    amber: "bg-signal-amber/10 text-amber-600 border-signal-amber/30",
+    red: "bg-signal-red/10 text-rose-600 border-signal-red/30",
+    violet: "bg-electric-500/15 text-electric-700 border-electric-500/30",
   };
   return (
     <span

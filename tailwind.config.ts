@@ -10,13 +10,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // SHFTD brand palette — minimal, futuristic, dark.
+        // SHFTD brand palette — minimal, futuristic, LIGHT.
+        // (Token names kept as "ink" so existing bg-ink-* classes flip to
+        // light surfaces app-wide. 900 = page background … 500 = borders.)
         ink: {
-          900: "#06070d", // page background
-          800: "#0a0c16", // surface
-          700: "#10131f", // card
-          600: "#171b2b", // raised card
-          500: "#1e2336", // border-ish
+          900: "#ffffff", // page background
+          800: "#f7f8fb", // subtle surface
+          700: "#ffffff", // card
+          600: "#f1f3f8", // raised card / hover
+          500: "#e3e7ef", // border-ish
         },
         electric: {
           DEFAULT: "#6c5ce7",
@@ -46,17 +48,17 @@ const config: Config = {
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       boxShadow: {
-        glow: "0 0 40px -10px rgba(108, 92, 231, 0.45)",
-        "glow-cyber": "0 0 40px -10px rgba(0, 224, 209, 0.45)",
-        card: "0 1px 0 0 rgba(255,255,255,0.03) inset, 0 8px 30px -12px rgba(0,0,0,0.6)",
+        glow: "0 10px 40px -12px rgba(108, 92, 231, 0.35)",
+        "glow-cyber": "0 10px 40px -12px rgba(0, 224, 209, 0.30)",
+        card: "0 1px 2px 0 rgba(16,24,40,0.04), 0 8px 24px -16px rgba(16,24,40,0.18)",
       },
       backgroundImage: {
         "grid-faint":
-          "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
+          "linear-gradient(rgba(16,24,40,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(16,24,40,0.04) 1px, transparent 1px)",
         "electric-gradient":
           "linear-gradient(135deg, #6c5ce7 0%, #00e0d1 100%)",
         "radial-glow":
-          "radial-gradient(60% 60% at 50% 0%, rgba(108,92,231,0.18) 0%, rgba(6,7,13,0) 100%)",
+          "radial-gradient(60% 60% at 50% 0%, rgba(108,92,231,0.10) 0%, rgba(255,255,255,0) 100%)",
       },
       keyframes: {
         "fade-in": {

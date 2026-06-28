@@ -115,7 +115,7 @@ export default function CopyStudioPage() {
         <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle>Brief</CardTitle>
-            <p className="text-sm text-slate-400">Tune the inputs, then generate.</p>
+            <p className="text-sm text-slate-500">Tune the inputs, then generate.</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -134,7 +134,7 @@ export default function CopyStudioPage() {
               <select
                 value={campaignId}
                 onChange={(e) => setCampaignId(e.target.value)}
-                className="h-10 w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 text-sm text-white ring-focus"
+                className="h-10 w-full rounded-lg border border-slate-200 bg-ink-700/60 px-3 text-sm text-slate-900 ring-focus"
               >
                 <option value="">None</option>
                 {campaigns.map((c) => (
@@ -173,7 +173,7 @@ export default function CopyStudioPage() {
                 value={audience}
                 onChange={(e) => setAudience(e.target.value)}
                 rows={2}
-                className="w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 py-2 text-sm text-white ring-focus"
+                className="w-full rounded-lg border border-slate-200 bg-ink-700/60 px-3 py-2 text-sm text-slate-900 ring-focus"
               />
             </div>
             <div>
@@ -181,7 +181,7 @@ export default function CopyStudioPage() {
               <input
                 value={offer}
                 onChange={(e) => setOffer(e.target.value)}
-                className="h-10 w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 text-sm text-white ring-focus"
+                className="h-10 w-full rounded-lg border border-slate-200 bg-ink-700/60 px-3 text-sm text-slate-900 ring-focus"
               />
             </div>
 
@@ -196,11 +196,11 @@ export default function CopyStudioPage() {
         <div className="lg:col-span-2">
           {variants.length === 0 ? (
             <Card className="flex h-full min-h-[300px] flex-col items-center justify-center p-12 text-center">
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-electric-500/10 text-electric-300">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-electric-500/10 text-electric-600">
                 <PenLine className="h-6 w-6" />
               </div>
-              <p className="font-medium text-white">Your variants will appear here</p>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="font-medium text-slate-900">Your variants will appear here</p>
+              <p className="mt-1 text-sm text-slate-500">
                 Set a brief and hit generate. Each variant is scored for fit.
               </p>
             </Card>
@@ -220,7 +220,7 @@ export default function CopyStudioPage() {
                       </div>
                       <ScorePill score={v.score} />
                     </div>
-                    <p className="whitespace-pre-wrap text-sm text-slate-200">
+                    <p className="whitespace-pre-wrap text-sm text-slate-700">
                       {v.content}
                     </p>
                     <div className="mt-3 flex gap-2">
@@ -230,7 +230,7 @@ export default function CopyStudioPage() {
                         onClick={() => copyText(i, v.content)}
                       >
                         {copied === i ? (
-                          <Check className="h-3.5 w-3.5 text-signal-green" />
+                          <Check className="h-3.5 w-3.5 text-emerald-600" />
                         ) : (
                           <Copy className="h-3.5 w-3.5" />
                         )}
@@ -258,7 +258,7 @@ export default function CopyStudioPage() {
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <label className="mb-1.5 block text-sm font-medium text-slate-300">
+    <label className="mb-1.5 block text-sm font-medium text-slate-600">
       {children}
     </label>
   );
@@ -279,8 +279,8 @@ function Chip({
       className={cn(
         "rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors",
         active
-          ? "border-electric-400/60 bg-electric-500/15 text-white"
-          : "border-white/10 text-slate-400 hover:text-white",
+          ? "border-electric-400/60 bg-electric-500/15 text-slate-900"
+          : "border-slate-200 text-slate-500 hover:text-slate-900",
       )}
     >
       {children}
@@ -290,7 +290,7 @@ function Chip({
 
 function ScorePill({ score }: { score: number }) {
   const tone =
-    score >= 88 ? "text-signal-green" : score >= 78 ? "text-cyber" : "text-signal-amber";
+    score >= 88 ? "text-emerald-600" : score >= 78 ? "text-teal-600" : "text-amber-600";
   return (
     <span className={cn("text-sm font-semibold", tone)}>{score}/100</span>
   );

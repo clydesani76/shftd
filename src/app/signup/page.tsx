@@ -11,9 +11,9 @@ export default function SignupPage() {
           <Logo showTagline />
         </div>
         <AuthForm mode="signup" />
-        <p className="mt-6 text-center text-sm text-slate-400">
+        <p className="mt-6 text-center text-sm text-slate-500">
           Already have an account?{" "}
-          <Link href="/login" className="text-electric-300 hover:text-electric-200">
+          <Link href="/login" className="text-electric-600 hover:text-electric-700">
             Sign in
           </Link>
         </p>

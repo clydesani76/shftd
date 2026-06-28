@@ -55,14 +55,14 @@ export default function AdminPage() {
         subtitle="Manage the platform — users, content, payouts, and disputes."
       />
 
-      <div className="mb-6 flex flex-wrap gap-1 border-b border-white/5">
+      <div className="mb-6 flex flex-wrap gap-1 border-b border-slate-200">
         {TABS.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={cn(
               "relative px-4 py-2 text-sm font-medium transition-colors",
-              tab === t ? "text-white" : "text-slate-400 hover:text-white",
+              tab === t ? "text-slate-900" : "text-slate-500 hover:text-slate-900",
             )}
           >
             {t}
@@ -100,7 +100,7 @@ function Table({
     <Card>
       <CardContent className="overflow-x-auto p-0">
         <table className="w-full text-sm">
-          <thead className="border-b border-white/5 text-left text-xs uppercase tracking-wide text-slate-500">
+          <thead className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
             <tr>
               {head.map((h) => (
                 <th key={h} className="px-4 py-3 font-medium">
@@ -109,7 +109,7 @@ function Table({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">{children}</tbody>
+          <tbody className="divide-y divide-slate-200">{children}</tbody>
         </table>
       </CardContent>
     </Card>
@@ -122,9 +122,9 @@ function UsersTab() {
   return (
     <Table head={["Name", "Email / Handle", "Role", "Action"]}>
       {users.map((u) => (
-        <tr key={u.id} className="hover:bg-white/[0.02]">
-          <td className="px-4 py-3 font-medium text-white">{u.fullName}</td>
-          <td className="px-4 py-3 text-slate-400">{u.email}</td>
+        <tr key={u.id} className="hover:bg-slate-50">
+          <td className="px-4 py-3 font-medium text-slate-900">{u.fullName}</td>
+          <td className="px-4 py-3 text-slate-500">{u.email}</td>
           <td className="px-4 py-3">
             <Badge tone="electric">{titleCase(u.role)}</Badge>
           </td>
@@ -136,9 +136,9 @@ function UsersTab() {
         </tr>
       ))}
       {creators.map((c) => (
-        <tr key={c.id} className="hover:bg-white/[0.02]">
-          <td className="px-4 py-3 font-medium text-white">{c.name}</td>
-          <td className="px-4 py-3 text-slate-400">
+        <tr key={c.id} className="hover:bg-slate-50">
+          <td className="px-4 py-3 font-medium text-slate-900">{c.name}</td>
+          <td className="px-4 py-3 text-slate-500">
             {c.socialHandles[0]?.handle}
           </td>
           <td className="px-4 py-3">
@@ -160,15 +160,15 @@ function CampaignsTab() {
   return (
     <Table head={["Campaign", "Path", "Status", "Budget", "Action"]}>
       {campaigns.map((c) => (
-        <tr key={c.id} className="hover:bg-white/[0.02]">
-          <td className="px-4 py-3 font-medium text-white">{c.name}</td>
-          <td className="px-4 py-3 text-slate-300">
+        <tr key={c.id} className="hover:bg-slate-50">
+          <td className="px-4 py-3 font-medium text-slate-900">{c.name}</td>
+          <td className="px-4 py-3 text-slate-600">
             {c.path === "proven" ? "Safe & Proven" : "Bold & Original"}
           </td>
           <td className="px-4 py-3">
             <StatusBadge status={c.status} />
           </td>
-          <td className="px-4 py-3 text-slate-300">{formatCurrency(c.budget, true)}</td>
+          <td className="px-4 py-3 text-slate-600">{formatCurrency(c.budget, true)}</td>
           <td className="px-4 py-3">
             <Button size="sm" variant="ghost">
               Review
@@ -185,14 +185,14 @@ function SubmissionsTab() {
   return (
     <Table head={["Creator", "Campaign", "Note", "Status", "Action"]}>
       {submissions.map((s) => (
-        <tr key={s.id} className="hover:bg-white/[0.02]">
-          <td className="px-4 py-3 font-medium text-white">
+        <tr key={s.id} className="hover:bg-slate-50">
+          <td className="px-4 py-3 font-medium text-slate-900">
             {getCreator(s.creatorId)?.name}
           </td>
-          <td className="px-4 py-3 text-slate-400">
+          <td className="px-4 py-3 text-slate-500">
             {getCampaign(s.campaignId)?.name}
           </td>
-          <td className="max-w-xs truncate px-4 py-3 text-slate-400">{s.note}</td>
+          <td className="max-w-xs truncate px-4 py-3 text-slate-500">{s.note}</td>
           <td className="px-4 py-3">
             <SubmissionBadge status={s.status} />
           </td>
@@ -212,12 +212,12 @@ function EvidenceTab() {
   return (
     <Table head={["Type", "Channel", "Content", "Action"]}>
       {evidence.map((e) => (
-        <tr key={e.id} className="hover:bg-white/[0.02]">
+        <tr key={e.id} className="hover:bg-slate-50">
           <td className="px-4 py-3">
             <Badge tone="cyber">{titleCase(e.type)}</Badge>
           </td>
-          <td className="px-4 py-3 text-slate-400">{e.channel}</td>
-          <td className="max-w-md truncate px-4 py-3 text-slate-300">{e.content}</td>
+          <td className="px-4 py-3 text-slate-500">{e.channel}</td>
+          <td className="max-w-md truncate px-4 py-3 text-slate-600">{e.content}</td>
           <td className="px-4 py-3">
             <Button size="sm" variant="ghost">
               Flag
@@ -234,15 +234,15 @@ function PayoutsTab() {
   return (
     <Table head={["Creator", "Campaign", "Type", "Amount", "Status", "Action"]}>
       {ledger.map((l) => (
-        <tr key={l.id} className="hover:bg-white/[0.02]">
-          <td className="px-4 py-3 font-medium text-white">
+        <tr key={l.id} className="hover:bg-slate-50">
+          <td className="px-4 py-3 font-medium text-slate-900">
             {getCreator(l.creatorId)?.name}
           </td>
-          <td className="px-4 py-3 text-slate-400">
+          <td className="px-4 py-3 text-slate-500">
             {getCampaign(l.campaignId)?.name}
           </td>
-          <td className="px-4 py-3 text-slate-300">{titleCase(l.type)}</td>
-          <td className="px-4 py-3 text-white">{formatCurrency(l.amount)}</td>
+          <td className="px-4 py-3 text-slate-600">{titleCase(l.type)}</td>
+          <td className="px-4 py-3 text-slate-900">{formatCurrency(l.amount)}</td>
           <td className="px-4 py-3">
             <Badge
               tone={

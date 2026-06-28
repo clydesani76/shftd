@@ -59,7 +59,7 @@ export default function PayoutsPage() {
         <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle>Payout method</CardTitle>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               {role === "creator"
                 ? "Connect your account to receive payouts."
                 : "Creators onboard via Stripe Connect."}
@@ -71,18 +71,18 @@ export default function PayoutsPage() {
                 "rounded-lg border p-4",
                 connected
                   ? "border-signal-green/30 bg-signal-green/5"
-                  : "border-white/10 bg-ink-800/50",
+                  : "border-slate-200 bg-ink-800/50",
               )}
             >
               <div className="flex items-center gap-2">
                 <CreditCard
-                  className={cn("h-5 w-5", connected ? "text-signal-green" : "text-slate-400")}
+                  className={cn("h-5 w-5", connected ? "text-emerald-600" : "text-slate-500")}
                 />
-                <p className="text-sm font-medium text-white">
+                <p className="text-sm font-medium text-slate-900">
                   {connected ? "Stripe Connect linked" : "Not connected"}
                 </p>
               </div>
-              <p className="mt-2 text-xs text-slate-400">
+              <p className="mt-2 text-xs text-slate-500">
                 {/* TODO: replace stub with real Stripe Connect onboarding via
                     Account Links + webhook to update payout eligibility. */}
                 {config.hasStripe
@@ -111,7 +111,7 @@ export default function PayoutsPage() {
           <CardHeader className="flex-row items-center justify-between">
             <div>
               <CardTitle>Payment ledger</CardTitle>
-              <p className="text-sm text-slate-400">Every base pay & bonus entry.</p>
+              <p className="text-sm text-slate-500">Every base pay & bonus entry.</p>
             </div>
             {isAdmin && (
               <Button size="sm" variant="outline">
@@ -121,7 +121,7 @@ export default function PayoutsPage() {
           </CardHeader>
           <CardContent className="p-0">
             <table className="w-full text-sm">
-              <thead className="border-y border-white/5 text-left text-xs uppercase tracking-wide text-slate-500">
+              <thead className="border-y border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="px-4 py-2 font-medium">Creator</th>
                   <th className="px-4 py-2 font-medium">Campaign</th>
@@ -130,13 +130,13 @@ export default function PayoutsPage() {
                   <th className="px-4 py-2 font-medium">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-slate-200">
                 {ledger.map((l) => (
-                  <tr key={l.id} className="hover:bg-white/[0.02]">
-                    <td className="px-4 py-3 text-white">{getCreator(l.creatorId)?.name}</td>
-                    <td className="px-4 py-3 text-slate-400">{getCampaign(l.campaignId)?.name}</td>
-                    <td className="px-4 py-3 text-slate-300">{titleCase(l.type)}</td>
-                    <td className="px-4 py-3 font-medium text-white">
+                  <tr key={l.id} className="hover:bg-slate-50">
+                    <td className="px-4 py-3 text-slate-900">{getCreator(l.creatorId)?.name}</td>
+                    <td className="px-4 py-3 text-slate-500">{getCampaign(l.campaignId)?.name}</td>
+                    <td className="px-4 py-3 text-slate-600">{titleCase(l.type)}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900">
                       {formatCurrency(l.amount)}
                     </td>
                     <td className="px-4 py-3">
@@ -164,8 +164,8 @@ export default function PayoutsPage() {
             return (
               <Card key={cid} className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="font-medium text-white">{creator?.name}</p>
-                  <span className="text-sm font-semibold text-signal-green">
+                  <p className="font-medium text-slate-900">{creator?.name}</p>
+                  <span className="text-sm font-semibold text-emerald-600">
                     {formatCurrency(earned)}
                   </span>
                 </div>
@@ -196,8 +196,8 @@ function Row({
 }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-slate-400">{label}</span>
-      <span className={tone === "green" ? "text-signal-green" : "text-signal-amber"}>
+      <span className="text-slate-500">{label}</span>
+      <span className={tone === "green" ? "text-emerald-600" : "text-amber-600"}>
         {value}
       </span>
     </div>

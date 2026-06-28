@@ -117,9 +117,9 @@ export function CampaignWizard() {
               className={cn(
                 "flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
                 i === step
-                  ? "bg-electric-500/15 text-white"
+                  ? "bg-electric-500/15 text-slate-900"
                   : i < step
-                    ? "text-cyber"
+                    ? "text-teal-600"
                     : "text-slate-500",
               )}
             >
@@ -127,10 +127,10 @@ export function CampaignWizard() {
                 className={cn(
                   "flex h-5 w-5 items-center justify-center rounded-full border text-[10px]",
                   i < step
-                    ? "border-cyber bg-cyber/20 text-cyber"
+                    ? "border-cyber bg-cyber/20 text-teal-600"
                     : i === step
-                      ? "border-electric-400 text-white"
-                      : "border-white/15",
+                      ? "border-electric-400 text-slate-900"
+                      : "border-slate-300",
                 )}
               >
                 {i < step ? <Check className="h-3 w-3" /> : i + 1}
@@ -149,10 +149,10 @@ export function CampaignWizard() {
           {step === 0 && (
             <>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-400">Campaign path:</span>
+                <span className="text-sm text-slate-500">Campaign path:</span>
                 <PathBadge path={draft.path} />
                 <button
-                  className="text-xs text-electric-300 hover:underline"
+                  className="text-xs text-electric-600 hover:underline"
                   onClick={() =>
                     set("path", draft.path === "proven" ? "original" : "proven")
                   }
@@ -195,7 +195,7 @@ export function CampaignWizard() {
                 onChange={(v) => set("budget", Number(v) || 0)}
               />
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-300">
+                <label className="mb-1.5 block text-sm font-medium text-slate-600">
                   Base pay vs performance bonus — {draft.basePct}% / {100 - draft.basePct}%
                 </label>
                 <input
@@ -207,13 +207,13 @@ export function CampaignWizard() {
                   className="w-full accent-electric-500"
                 />
                 <div className="mt-2 grid grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-lg border border-white/5 bg-ink-800/50 p-3">
+                  <div className="rounded-lg border border-slate-200 bg-ink-800/50 p-3">
                     <p className="text-xs text-slate-500">Base pay pool</p>
-                    <p className="text-lg font-semibold text-white">${base.toLocaleString()}</p>
+                    <p className="text-lg font-semibold text-slate-900">${base.toLocaleString()}</p>
                   </div>
-                  <div className="rounded-lg border border-white/5 bg-ink-800/50 p-3">
+                  <div className="rounded-lg border border-slate-200 bg-ink-800/50 p-3">
                     <p className="text-xs text-slate-500">Performance bonus pool</p>
-                    <p className="text-lg font-semibold text-cyber">${bonus.toLocaleString()}</p>
+                    <p className="text-lg font-semibold text-teal-600">${bonus.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
@@ -230,13 +230,13 @@ export function CampaignWizard() {
               <Review label="Platforms" value={draft.platforms} />
               <Review label="Budget" value={`$${draft.budget.toLocaleString()} (base $${base.toLocaleString()} / bonus $${bonus.toLocaleString()})`} />
               <p className="pt-2 text-xs text-slate-500">
-                Saving creates a <span className="text-white">Draft</span> campaign.
+                Saving creates a <span className="text-slate-900">Draft</span> campaign.
                 Publish it from the campaign page to open it to the marketplace.
               </p>
             </div>
           )}
 
-          <div className="flex items-center justify-between border-t border-white/5 pt-4">
+          <div className="flex items-center justify-between border-t border-slate-200 pt-4">
             <Button
               variant="ghost"
               onClick={() => setStep((s) => Math.max(0, s - 1))}
@@ -276,13 +276,13 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-slate-300">{label}</label>
+      <label className="mb-1.5 block text-sm font-medium text-slate-600">{label}</label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-10 w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 text-sm text-white placeholder:text-slate-500 ring-focus"
+        className="h-10 w-full rounded-lg border border-slate-200 bg-ink-700/60 px-3 text-sm text-slate-900 placeholder:text-slate-500 ring-focus"
       />
     </div>
   );
@@ -301,13 +301,13 @@ function Area({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-slate-300">{label}</label>
+      <label className="mb-1.5 block text-sm font-medium text-slate-600">{label}</label>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={3}
-        className="w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 ring-focus"
+        className="w-full rounded-lg border border-slate-200 bg-ink-700/60 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 ring-focus"
       />
     </div>
   );
@@ -315,9 +315,9 @@ function Area({
 
 function Review({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex gap-3 border-b border-white/5 pb-2 text-sm">
+    <div className="flex gap-3 border-b border-slate-200 pb-2 text-sm">
       <span className="w-28 shrink-0 text-slate-500">{label}</span>
-      <span className="text-slate-200">{value || "—"}</span>
+      <span className="text-slate-700">{value || "—"}</span>
     </div>
   );
 }

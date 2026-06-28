@@ -58,8 +58,8 @@ export default function CampaignsPage() {
             className={cn(
               "rounded-lg border px-3 py-1.5 text-xs font-medium capitalize transition-colors",
               filter === f
-                ? "border-electric-400/60 bg-electric-500/15 text-white"
-                : "border-white/10 text-slate-400 hover:text-white",
+                ? "border-electric-400/60 bg-electric-500/15 text-slate-900"
+                : "border-slate-200 text-slate-500 hover:text-slate-900",
             )}
           >
             {f}
@@ -75,8 +75,8 @@ export default function CampaignsPage() {
                 <PathBadge path={c.path} />
                 <StatusBadge status={c.status} />
               </div>
-              <h3 className="font-semibold text-white">{c.name}</h3>
-              <p className="mt-1 line-clamp-2 flex-1 text-sm text-slate-400">
+              <h3 className="font-semibold text-slate-900">{c.name}</h3>
+              <p className="mt-1 line-clamp-2 flex-1 text-sm text-slate-500">
                 {c.goal}
               </p>
               <div className="mt-4 flex flex-wrap gap-1">
@@ -84,7 +84,7 @@ export default function CampaignsPage() {
                   <Badge key={p}>{p}</Badge>
                 ))}
               </div>
-              <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3 text-xs text-slate-500">
+              <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3 text-xs text-slate-500">
                 <span>{formatCurrency(c.budget, true)} budget</span>
                 <span>{formatDate(c.timelineStart)}</span>
               </div>
@@ -94,7 +94,7 @@ export default function CampaignsPage() {
       </div>
 
       {campaigns.length === 0 && (
-        <Card className="p-12 text-center text-slate-400">
+        <Card className="p-12 text-center text-slate-500">
           <Megaphone className="mx-auto mb-3 h-8 w-8 text-slate-600" />
           No campaigns in this view.
         </Card>

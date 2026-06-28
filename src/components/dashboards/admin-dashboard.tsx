@@ -87,15 +87,15 @@ export function AdminDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Moderation queue</CardTitle>
-            <p className="text-sm text-slate-400">Submissions awaiting action</p>
+            <p className="text-sm text-slate-500">Submissions awaiting action</p>
           </CardHeader>
           <CardContent className="space-y-2">
             {needsReview.map((s) => (
               <div
                 key={s.id}
-                className="flex items-center justify-between rounded-lg border border-white/5 bg-ink-800/50 p-3"
+                className="flex items-center justify-between rounded-lg border border-slate-200 bg-ink-800/50 p-3"
               >
-                <p className="line-clamp-1 text-sm text-slate-200">{s.note}</p>
+                <p className="line-clamp-1 text-sm text-slate-700">{s.note}</p>
                 <SubmissionBadge status={s.status} />
               </div>
             ))}
@@ -113,21 +113,21 @@ export function AdminDashboard() {
         <Card>
           <CardContent className="p-0">
             <table className="w-full text-sm">
-              <thead className="border-b border-white/5 text-left text-xs uppercase tracking-wide text-slate-500">
+              <thead className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="px-4 py-3 font-medium">Name</th>
                   <th className="px-4 py-3 font-medium">Email</th>
                   <th className="px-4 py-3 font-medium">Role</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-slate-200">
                 {users.map((u) => (
-                  <tr key={u.id} className="hover:bg-white/[0.02]">
-                    <td className="px-4 py-3 font-medium text-white">
+                  <tr key={u.id} className="hover:bg-slate-50">
+                    <td className="px-4 py-3 font-medium text-slate-900">
                       {u.fullName}
                     </td>
-                    <td className="px-4 py-3 text-slate-400">{u.email}</td>
-                    <td className="px-4 py-3 text-slate-300 capitalize">{u.role}</td>
+                    <td className="px-4 py-3 text-slate-500">{u.email}</td>
+                    <td className="px-4 py-3 text-slate-600 capitalize">{u.role}</td>
                   </tr>
                 ))}
               </tbody>

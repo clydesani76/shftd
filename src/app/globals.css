@@ -12,29 +12,29 @@
     @apply antialiased;
   }
   body {
-    @apply bg-ink-900 text-slate-200 selection:bg-electric-500/30;
+    @apply bg-ink-900 text-slate-700 selection:bg-electric-500/20;
     background-image: radial-gradient(
         60% 50% at 50% -10%,
-        rgba(108, 92, 231, 0.12) 0%,
-        rgba(6, 7, 13, 0) 60%
+        rgba(108, 92, 231, 0.08) 0%,
+        rgba(255, 255, 255, 0) 60%
       ),
       radial-gradient(
         40% 40% at 90% 10%,
-        rgba(0, 224, 209, 0.08) 0%,
-        rgba(6, 7, 13, 0) 60%
+        rgba(0, 224, 209, 0.06) 0%,
+        rgba(255, 255, 255, 0) 60%
       );
     background-attachment: fixed;
   }
   h1, h2, h3, h4 {
-    @apply tracking-tight text-white;
+    @apply tracking-tight text-slate-900;
   }
-  /* Thin futuristic scrollbars */
+  /* Thin scrollbars */
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-ink-500 rounded-full border-2 border-transparent bg-clip-padding;
+    @apply bg-slate-300 rounded-full border-2 border-transparent bg-clip-padding;
   }
   ::-webkit-scrollbar-track {
     @apply bg-transparent;
@@ -43,16 +43,16 @@
 
 @layer components {
   .card {
-    @apply rounded-xl border border-white/5 bg-ink-700/70 backdrop-blur-sm shadow-card;
+    @apply rounded-xl border border-slate-200 bg-white shadow-card;
   }
   .card-hover {
-    @apply transition-all duration-200 hover:border-white/10 hover:bg-ink-600/70;
+    @apply transition-all duration-200 hover:border-slate-300 hover:shadow-md;
   }
   .gradient-text {
     @apply bg-electric-gradient bg-clip-text text-transparent;
   }
   .ring-focus {
-    @apply focus:outline-none focus:ring-2 focus:ring-electric-500/60 focus:ring-offset-2 focus:ring-offset-ink-900;
+    @apply focus:outline-none focus:ring-2 focus:ring-electric-500/40 focus:ring-offset-2 focus:ring-offset-white;
   }
   /* Faint grid background utility */
   .bg-grid {

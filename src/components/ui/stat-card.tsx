@@ -18,20 +18,20 @@ export function StatCard({
   accent?: "electric" | "cyber" | "green" | "amber";
 }) {
   const accents: Record<string, string> = {
-    electric: "text-electric-300 bg-electric-500/10",
-    cyber: "text-cyber bg-cyber/10",
-    green: "text-signal-green bg-signal-green/10",
-    amber: "text-signal-amber bg-signal-amber/10",
+    electric: "text-electric-600 bg-electric-500/10",
+    cyber: "text-teal-600 bg-cyber/10",
+    green: "text-emerald-600 bg-signal-green/10",
+    amber: "text-amber-600 bg-signal-amber/10",
   };
   const up = (delta ?? 0) >= 0;
   return (
     <Card className="p-5">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
             {label}
           </p>
-          <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
+          <p className="mt-2 text-2xl font-semibold text-slate-900">{value}</p>
         </div>
         {Icon && (
           <div
@@ -49,7 +49,7 @@ export function StatCard({
           <span
             className={cn(
               "inline-flex items-center gap-0.5 font-medium",
-              up ? "text-signal-green" : "text-signal-red",
+              up ? "text-emerald-600" : "text-rose-600",
             )}
           >
             {up ? (

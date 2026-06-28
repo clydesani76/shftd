@@ -18,14 +18,15 @@ import {
   YAxis,
 } from "recharts";
 
-const AXIS = { stroke: "#475569", fontSize: 11 };
-const GRID = "#1e2336";
+const AXIS = { stroke: "#94a3b8", fontSize: 11 };
+const GRID = "#e5e8ef";
 const TOOLTIP_STYLE = {
-  background: "#10131f",
-  border: "1px solid rgba(255,255,255,0.1)",
+  background: "#ffffff",
+  border: "1px solid #e5e8ef",
   borderRadius: 8,
   fontSize: 12,
-  color: "#e2e8f0",
+  color: "#0f172a",
+  boxShadow: "0 8px 24px -16px rgba(16,24,40,0.18)",
 };
 
 const ELECTRIC = "#6c5ce7";

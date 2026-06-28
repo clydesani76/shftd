@@ -44,16 +44,16 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative z-10 mx-auto max-w-4xl px-6 pt-16 text-center sm:pt-24">
-        <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
-          <Sparkles className="h-3.5 w-3.5 text-cyber" />
+        <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs text-slate-600">
+          <Sparkles className="h-3.5 w-3.5 text-teal-600" />
           The Marketing Operating System
         </div>
-        <h1 className="text-balance text-4xl font-bold leading-tight text-white sm:text-6xl">
+        <h1 className="text-balance text-4xl font-bold leading-tight text-slate-900 sm:text-6xl">
           Stop chasing trends.
           <br />
           <span className="gradient-text">Start setting them.</span>
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg text-slate-400">
+        <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg text-slate-500">
           SHFTD decides what marketing to do next, creates the campaigns,
           executes them with creators, tracks the results, and learns from every
           campaign — so you grow faster than your competitors.
@@ -79,25 +79,25 @@ export default function LandingPage() {
       <section className="relative z-10 mx-auto mt-20 max-w-5xl px-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <Card className="border-cyber/20 bg-cyber/5 p-6">
-            <p className="text-xs font-semibold uppercase tracking-widest text-cyber">
+            <p className="text-xs font-semibold uppercase tracking-widest text-teal-600">
               Safe &amp; Proven
             </p>
-            <h3 className="mt-2 text-xl font-semibold text-white">
+            <h3 className="mt-2 text-xl font-semibold text-slate-900">
               Optimization campaigns
             </h3>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-sm text-slate-500">
               Lower-risk plays built on what competitors are already doing
               successfully — proven hooks, CTAs, offers, and formats.
             </p>
           </Card>
           <Card className="border-electric-500/20 bg-electric-500/5 p-6">
-            <p className="text-xs font-semibold uppercase tracking-widest text-electric-300">
+            <p className="text-xs font-semibold uppercase tracking-widest text-electric-600">
               Bold &amp; Original
             </p>
-            <h3 className="mt-2 text-xl font-semibold text-white">
+            <h3 className="mt-2 text-xl font-semibold text-slate-900">
               First-mover campaigns
             </h3>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-sm text-slate-500">
               Higher-upside ideas built from trend synthesis and white-space
               detection — campaigns others may eventually copy.
             </p>
@@ -107,17 +107,17 @@ export default function LandingPage() {
 
       {/* Layers */}
       <section className="relative z-10 mx-auto mt-20 max-w-6xl px-6 pb-24">
-        <h2 className="mb-8 text-center text-2xl font-semibold text-white">
+        <h2 className="mb-8 text-center text-2xl font-semibold text-slate-900">
           One system, end to end
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {LAYERS.map((l) => (
             <Card key={l.title} hover className="p-6">
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-electric-500/10 text-electric-300">
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-electric-500/10 text-electric-600">
                 <l.icon className="h-5 w-5" />
               </div>
-              <h3 className="font-semibold text-white">{l.title}</h3>
-              <p className="mt-2 text-sm text-slate-400">{l.copy}</p>
+              <h3 className="font-semibold text-slate-900">{l.title}</h3>
+              <p className="mt-2 text-sm text-slate-500">{l.copy}</p>
             </Card>
           ))}
         </div>
@@ -126,16 +126,16 @@ export default function LandingPage() {
       {/* The difference / moat */}
       <section className="relative z-10 mx-auto max-w-5xl px-6 pb-24">
         <div className="mb-8 text-center">
-          <p className="text-xs font-semibold uppercase tracking-widest text-cyber">
+          <p className="text-xs font-semibold uppercase tracking-widest text-teal-600">
             Why SHFTD is different
           </p>
-          <h2 className="mt-2 text-2xl font-semibold text-white">
+          <h2 className="mt-2 text-2xl font-semibold text-slate-900">
             Not another marketplace or payout tool
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400">
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-500">
             Most platforms help you get paid and find people to promote your
             offer. That&apos;s the easy part. SHFTD decides{" "}
-            <span className="text-white">what marketing to run</span> — and gets
+            <span className="text-slate-900">what marketing to run</span> — and gets
             smarter every campaign.
           </p>
         </div>
@@ -145,7 +145,7 @@ export default function LandingPage() {
             <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
               Marketplaces &amp; payout tools
             </p>
-            <h3 className="mt-2 font-semibold text-slate-300">
+            <h3 className="mt-2 font-semibold text-slate-600">
               The distribution layer
             </h3>
             <ul className="mt-3 space-y-2 text-sm text-slate-500">
@@ -156,13 +156,13 @@ export default function LandingPage() {
             </ul>
           </Card>
           <Card className="border-electric-500/30 bg-electric-500/5 p-6 shadow-glow">
-            <p className="text-xs font-semibold uppercase tracking-widest text-electric-300">
+            <p className="text-xs font-semibold uppercase tracking-widest text-electric-600">
               SHFTD
             </p>
-            <h3 className="mt-2 font-semibold text-white">
+            <h3 className="mt-2 font-semibold text-slate-900">
               The decision layer — your marketing brain
             </h3>
-            <ul className="mt-3 space-y-2 text-sm text-slate-300">
+            <ul className="mt-3 space-y-2 text-sm text-slate-600">
               <li>• Reads competitors &amp; finds white space</li>
               <li>• Recommends Proven vs Original plays, with the “why”</li>
               <li>• Runs them end to end, then tracks ROI</li>
@@ -171,14 +171,14 @@ export default function LandingPage() {
           </Card>
         </div>
 
-        <p className="mx-auto mt-8 max-w-2xl text-center text-base text-slate-300">
-          They help you <span className="text-slate-400">get paid</span>. SHFTD
+        <p className="mx-auto mt-8 max-w-2xl text-center text-base text-slate-600">
+          They help you <span className="text-slate-500">get paid</span>. SHFTD
           tells you <span className="gradient-text font-semibold">what to do
           next</span> — and compounds that edge over time.
         </p>
       </section>
 
-      <footer className="relative z-10 border-t border-white/5 py-8 text-center text-xs text-slate-500">
+      <footer className="relative z-10 border-t border-slate-200 py-8 text-center text-xs text-slate-500">
         SHFTD — The Marketing Operating System. © {new Date().getFullYear()}
       </footer>
     </div>

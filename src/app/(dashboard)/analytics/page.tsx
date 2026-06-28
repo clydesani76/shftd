@@ -75,7 +75,7 @@ export default function AnalyticsPage() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Proven vs Original — ROAS over time</CardTitle>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               Proven plays deliver faster, predictable returns; original plays
               build slower but compound.
             </p>
@@ -115,24 +115,24 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <CardTitle>What worked / what failed</CardTitle>
-            <p className="text-sm text-slate-400">Auto-summarized from performance.</p>
+            <p className="text-sm text-slate-500">Auto-summarized from performance.</p>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="rounded-lg border border-signal-green/20 bg-signal-green/5 p-3">
-              <p className="flex items-center gap-2 text-sm font-medium text-signal-green">
+              <p className="flex items-center gap-2 text-sm font-medium text-emerald-600">
                 <ThumbsUp className="h-4 w-4" /> What worked
               </p>
-              <ul className="mt-2 space-y-1 text-sm text-slate-300">
+              <ul className="mt-2 space-y-1 text-sm text-slate-600">
                 <li>• Honest POV hooks drove a 3.73x ROAS on the Coffee Swap.</li>
                 <li>• Igniter-led top of funnel kept CAC under $19.</li>
                 <li>• Q1 fresh-start framing hit the best ROAS on record (5.57x).</li>
               </ul>
             </div>
             <div className="rounded-lg border border-signal-red/20 bg-signal-red/5 p-3">
-              <p className="flex items-center gap-2 text-sm font-medium text-signal-red">
+              <p className="flex items-center gap-2 text-sm font-medium text-rose-600">
                 <ThumbsDown className="h-4 w-4" /> What failed
               </p>
-              <ul className="mt-2 space-y-1 text-sm text-slate-300">
+              <ul className="mt-2 space-y-1 text-sm text-slate-600">
                 <li>• &quot;Zero crash&quot; messaging underperformed (CTR 0.8%).</li>
                 <li>• Original 3PM play is early — ROAS still ramping (2.4x).</li>
               </ul>
@@ -147,7 +147,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardContent className="overflow-x-auto p-0">
             <table className="w-full text-sm">
-              <thead className="border-b border-white/5 text-left text-xs uppercase tracking-wide text-slate-500">
+              <thead className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="px-4 py-3 font-medium">Campaign</th>
                   <th className="px-4 py-3 font-medium">Path</th>
@@ -158,17 +158,17 @@ export default function AnalyticsPage() {
                   <th className="px-4 py-3 font-medium">ROAS</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-slate-200">
                 {metrics.map((m) => {
                   const c = getCampaign(m.campaignId);
                   return (
-                    <tr key={m.id} className="hover:bg-white/[0.02]">
-                      <td className="px-4 py-3 font-medium text-white">{c?.name}</td>
+                    <tr key={m.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 font-medium text-slate-900">{c?.name}</td>
                       <td className="px-4 py-3">{c && <PathBadge path={c.path} />}</td>
-                      <td className="px-4 py-3 text-slate-300">{formatCompact(m.views)}</td>
-                      <td className="px-4 py-3 text-slate-300">{m.ctr}%</td>
-                      <td className="px-4 py-3 text-slate-300">{formatCompact(m.conversions)}</td>
-                      <td className="px-4 py-3 text-slate-300">{formatCurrency(m.revenue, true)}</td>
+                      <td className="px-4 py-3 text-slate-600">{formatCompact(m.views)}</td>
+                      <td className="px-4 py-3 text-slate-600">{m.ctr}%</td>
+                      <td className="px-4 py-3 text-slate-600">{formatCompact(m.conversions)}</td>
+                      <td className="px-4 py-3 text-slate-600">{formatCurrency(m.revenue, true)}</td>
                       <td className="px-4 py-3">
                         <Badge tone={m.roas >= 3 ? "green" : "amber"}>{m.roas}x</Badge>
                       </td>

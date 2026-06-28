@@ -11,9 +11,9 @@ export default function LoginPage() {
           <Logo showTagline />
         </div>
         <AuthForm mode="login" />
-        <p className="mt-6 text-center text-sm text-slate-400">
+        <p className="mt-6 text-center text-sm text-slate-500">
           New to SHFTD?{" "}
-          <Link href="/signup" className="text-electric-300 hover:text-electric-200">
+          <Link href="/signup" className="text-electric-600 hover:text-electric-700">
             Create an account
           </Link>
         </p>

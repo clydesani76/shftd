@@ -13,7 +13,7 @@ export function Sidebar() {
   const items = navForRole(role);
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-white/5 bg-ink-800/60 backdrop-blur-md lg:flex">
+    <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-ink-800/60 backdrop-blur-md lg:flex">
       <div className="flex h-16 items-center px-6">
         <Link href="/dashboard">
           <Logo />
@@ -32,14 +32,14 @@ export function Sidebar() {
               className={cn(
                 "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                 active
-                  ? "bg-electric-500/15 text-white"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white",
+                  ? "bg-electric-500/15 text-slate-900"
+                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-900",
               )}
             >
               <Icon
                 className={cn(
                   "h-4 w-4 shrink-0",
-                  active ? "text-electric-300" : "text-slate-500 group-hover:text-slate-300",
+                  active ? "text-electric-600" : "text-slate-500 group-hover:text-slate-600",
                 )}
               />
               <span className="truncate">{item.label}</span>
@@ -51,12 +51,12 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="border-t border-white/5 p-4">
+      <div className="border-t border-slate-200 p-4">
         <div className="rounded-lg bg-electric-500/10 p-3">
-          <p className="text-xs font-medium text-electric-200">
+          <p className="text-xs font-medium text-electric-700">
             {role === "creator" ? "Creator workspace" : "Marketing OS"}
           </p>
-          <p className="mt-1 text-[11px] leading-snug text-slate-400">
+          <p className="mt-1 text-[11px] leading-snug text-slate-500">
             Stop chasing trends. Start setting them.
           </p>
         </div>

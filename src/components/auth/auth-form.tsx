@@ -68,7 +68,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         <CardTitle className="text-xl">
           {isSignup ? "Create your account" : "Welcome back"}
         </CardTitle>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-500">
           {isSignup
             ? "Start setting trends instead of chasing them."
             : "Sign in to your Marketing OS."}
@@ -101,7 +101,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
           {isSignup && (
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-300">
+              <label className="mb-1.5 block text-sm font-medium text-slate-600">
                 I am a…
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -113,8 +113,8 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
                     className={cn(
                       "rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
                       role === r
-                        ? "border-electric-400/60 bg-electric-500/15 text-white"
-                        : "border-white/10 text-slate-400 hover:text-white",
+                        ? "border-electric-400/60 bg-electric-500/15 text-slate-900"
+                        : "border-slate-200 text-slate-500 hover:text-slate-900",
                     )}
                   >
                     {titleCase(r)}
@@ -125,7 +125,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           )}
 
           {error && (
-            <p className="rounded-lg bg-signal-red/10 px-3 py-2 text-sm text-signal-red">
+            <p className="rounded-lg bg-signal-red/10 px-3 py-2 text-sm text-rose-600">
               {error}
             </p>
           )}
@@ -164,7 +164,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-slate-300">
+      <label className="mb-1.5 block text-sm font-medium text-slate-600">
         {label}
       </label>
       <input
@@ -172,7 +172,7 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-10 w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 text-sm text-white placeholder:text-slate-500 ring-focus"
+        className="h-10 w-full rounded-lg border border-slate-200 bg-ink-700/60 px-3 text-sm text-slate-900 placeholder:text-slate-500 ring-focus"
       />
     </div>
   );
