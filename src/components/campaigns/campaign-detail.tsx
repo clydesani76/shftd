@@ -15,13 +15,12 @@ import {
 } from "@/components/ui/badge";
 import {
   getApplications,
-  getCopyVariants,
   getCreator,
   getMetricsForCampaign,
   getSubmissions,
 } from "@/lib/data";
 import { cn, formatCompact, formatCurrency, formatDate, titleCase } from "@/lib/utils";
-import type { Campaign, Submission, SubmissionStatus } from "@/types";
+import type { Campaign, CopyVariant, Submission, SubmissionStatus } from "@/types";
 import {
   Calendar,
   Users,
@@ -68,6 +67,16 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
     },
   });
 
+  // Saved AI copy attached to this campaign (from the database).
+  const { data: copy = [] } = useQuery<CopyVariant[]>({
+    queryKey: ["copy", campaignId],
+    queryFn: async () => {
+      const res = await fetch(`/api/copy?campaignId=${campaignId}`);
+      const data = await res.json();
+      return data.copy ?? [];
+    },
+  });
+
   // Local submission state so review actions feel live in the demo. (Kept as
   // a hook above any early return so hook order stays stable.)
   const [submissions, setSubmissions] = useState<Submission[]>(
@@ -100,7 +109,6 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
 
   const status = campaign.status;
   const applications = getApplications(campaignId);
-  const copy = getCopyVariants(campaignId);
   const metrics = getMetricsForCampaign(campaignId);
 
   return (

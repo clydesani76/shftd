@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/ui/misc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getBusinessProfile, getCampaigns } from "@/lib/data";
+import { getBusinessProfile } from "@/lib/data";
 import { cn, titleCase } from "@/lib/utils";
-import type { CopyType } from "@/types";
+import type { Campaign, CopyType } from "@/types";
 import type { GeneratedCopy } from "@/lib/ai/types";
 import { Sparkles, Copy, Check, Bookmark, PenLine } from "lucide-react";
 
@@ -25,7 +26,17 @@ const PLATFORMS = ["TikTok", "Instagram", "YouTube", "Email", "Landing Page"];
 
 export default function CopyStudioPage() {
   const profile = getBusinessProfile();
-  const campaigns = getCampaigns();
+
+  // Real campaigns for the "attach to campaign" dropdown, so saved copy links
+  // to an actual campaign in the database.
+  const { data: campaigns = [] } = useQuery<Campaign[]>({
+    queryKey: ["campaigns"],
+    queryFn: async () => {
+      const res = await fetch("/api/campaigns");
+      const data = await res.json();
+      return data.campaigns ?? [];
+    },
+  });
 
   const [type, setType] = useState<CopyType>("hook");
   const [platform, setPlatform] = useState("TikTok");
@@ -69,9 +80,27 @@ export default function CopyStudioPage() {
     setTimeout(() => setCopied(null), 1500);
   }
 
-  function save(i: number) {
-    // TODO(supabase): insert copy_variants + campaign_saved_copy.
-    setSaved((prev) => new Set(prev).add(i));
+  async function save(i: number, variant: GeneratedCopy) {
+    // Persist the chosen variant to the database (optionally attached to the
+    // selected campaign). Mark as saved on success.
+    try {
+      const res = await fetch("/api/copy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          campaignId: campaignId || undefined,
+          type: variant.type,
+          platform: variant.platform,
+          tone: variant.tone,
+          content: variant.content,
+          score: variant.score,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+      setSaved((prev) => new Set(prev).add(i));
+    } catch {
+      // Leave unsaved so the user can retry.
+    }
   }
 
   return (
@@ -210,7 +239,7 @@ export default function CopyStudioPage() {
                       <Button
                         size="sm"
                         variant={saved.has(i) ? "secondary" : "outline"}
-                        onClick={() => save(i)}
+                        onClick={() => save(i, v)}
                         disabled={saved.has(i)}
                       >
                         <Bookmark className="h-3.5 w-3.5" />
