@@ -7,28 +7,46 @@ import { PageHeader, SectionLabel, ProgressBar, EmptyState } from "@/components/
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge, InsightBadge } from "@/components/ui/badge";
-import { getEvidence, getEvidenceForCompetitor, getInsights } from "@/lib/data";
 import { timeAgo, titleCase } from "@/lib/utils";
-import type { Competitor, Insight } from "@/types";
+import type { Competitor, Evidence, EvidenceType, Insight } from "@/types";
 import { Plus, Radar, ArrowRight, Sparkles, Globe, AtSign } from "lucide-react";
 
 type NewCompetitor = Omit<Competitor, "id" | "orgId" | "addedAt">;
+type NewEvidence = {
+  competitorId: string;
+  type: EvidenceType;
+  channel: string;
+  content: string;
+};
 
 export default function IntelligencePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [insights] = useState<Insight[]>(getInsights());
   const [showAdd, setShowAdd] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
+  const [showAddEvidence, setShowAddEvidence] = useState(false);
 
-  // Competitors now come from the database (via /api/competitors). React
-  // Query handles loading + caching; adds persist to Supabase.
+  // Competitors, evidence and insights all come from the database.
   const { data: competitors = [] } = useQuery<Competitor[]>({
     queryKey: ["competitors"],
     queryFn: async () => {
       const res = await fetch("/api/competitors");
-      const data = await res.json();
-      return data.competitors ?? [];
+      return (await res.json()).competitors ?? [];
+    },
+  });
+
+  const { data: evidence = [] } = useQuery<Evidence[]>({
+    queryKey: ["evidence"],
+    queryFn: async () => {
+      const res = await fetch("/api/evidence");
+      return (await res.json()).evidence ?? [];
+    },
+  });
+
+  const { data: insights = [] } = useQuery<Insight[]>({
+    queryKey: ["insights"],
+    queryFn: async () => {
+      const res = await fetch("/api/insights");
+      return (await res.json()).insights ?? [];
     },
   });
 
@@ -43,10 +61,35 @@ export default function IntelligencePage() {
       return res.json();
     },
     onSuccess: () => {
-      // Re-pull the saved list from the database.
       queryClient.invalidateQueries({ queryKey: ["competitors"] });
       setShowAdd(false);
     },
+  });
+
+  const addEvidenceMutation = useMutation({
+    mutationFn: async (e: NewEvidence) => {
+      const res = await fetch("/api/evidence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(e),
+      });
+      if (!res.ok) throw new Error("Failed to add evidence");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["evidence"] });
+      setShowAddEvidence(false);
+    },
+  });
+
+  // Re-analyze: generate insights from stored evidence and persist them.
+  const reanalyzeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/insights", { method: "POST" });
+      if (!res.ok) throw new Error("Failed to analyze");
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["insights"] }),
   });
 
   function addCompetitor(c: NewCompetitor) {
@@ -68,14 +111,11 @@ export default function IntelligencePage() {
           <>
             <Button
               variant="outline"
-              onClick={() => {
-                // Simulated re-analysis pass over stored evidence.
-                setAnalyzing(true);
-                setTimeout(() => setAnalyzing(false), 1100);
-              }}
+              onClick={() => reanalyzeMutation.mutate()}
+              disabled={reanalyzeMutation.isPending}
             >
               <Sparkles className="h-4 w-4" />
-              {analyzing ? "Analyzing…" : "Re-analyze"}
+              {reanalyzeMutation.isPending ? "Analyzing…" : "Re-analyze"}
             </Button>
             <Button onClick={() => setShowAdd((s) => !s)}>
               <Plus className="h-4 w-4" /> Add competitor
@@ -92,13 +132,22 @@ export default function IntelligencePage() {
         />
       )}
 
+      {showAddEvidence && (
+        <AddEvidenceForm
+          competitors={competitors}
+          onAdd={(e) => addEvidenceMutation.mutate(e)}
+          onCancel={() => setShowAddEvidence(false)}
+          pending={addEvidenceMutation.isPending}
+        />
+      )}
+
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Competitors + evidence */}
         <div className="lg:col-span-1">
           <SectionLabel>Tracked competitors</SectionLabel>
           <div className="space-y-3">
             {competitors.map((c) => {
-              const evidence = getEvidenceForCompetitor(c.id);
+              const signals = evidence.filter((e) => e.competitorId === c.id);
               return (
                 <Card key={c.id} className="p-4">
                   <div className="flex items-start justify-between gap-2">
@@ -106,7 +155,7 @@ export default function IntelligencePage() {
                       <p className="font-medium text-white">{c.brandName}</p>
                       <p className="text-xs text-slate-500">{c.category}</p>
                     </div>
-                    <Badge>{evidence.length} signals</Badge>
+                    <Badge>{signals.length} signals</Badge>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-400">
                     {c.domain && (
@@ -125,21 +174,33 @@ export default function IntelligencePage() {
             })}
           </div>
 
-          <SectionLabel>
-            <span className="mt-6 block">Captured evidence</span>
-          </SectionLabel>
+          <div className="mb-3 mt-6 flex items-center justify-between">
+            <SectionLabel>Captured evidence</SectionLabel>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setShowAddEvidence((s) => !s)}
+              disabled={competitors.length === 0}
+            >
+              <Plus className="h-3.5 w-3.5" /> Add
+            </Button>
+          </div>
           <div className="space-y-2">
-            {getEvidence()
-              .slice(0, 4)
-              .map((e) => (
-                <Card key={e.id} className="p-3">
-                  <div className="mb-1 flex items-center gap-2">
-                    <Badge tone="cyber">{titleCase(e.type)}</Badge>
-                    <span className="text-xs text-slate-500">{e.channel}</span>
-                  </div>
-                  <p className="line-clamp-2 text-xs text-slate-300">{e.content}</p>
-                </Card>
-              ))}
+            {evidence.length === 0 && (
+              <p className="rounded-lg border border-dashed border-white/10 p-3 text-xs text-slate-500">
+                No evidence captured yet. Add a competitor, then attach the ads,
+                hooks, or offers you observe.
+              </p>
+            )}
+            {evidence.slice(0, 6).map((e) => (
+              <Card key={e.id} className="p-3">
+                <div className="mb-1 flex items-center gap-2">
+                  <Badge tone="cyber">{titleCase(e.type)}</Badge>
+                  <span className="text-xs text-slate-500">{e.channel}</span>
+                </div>
+                <p className="line-clamp-2 text-xs text-slate-300">{e.content}</p>
+              </Card>
+            ))}
           </div>
         </div>
 
@@ -150,7 +211,16 @@ export default function IntelligencePage() {
             <EmptyState
               icon={Radar}
               title="No insights yet"
-              description="Add competitors and evidence, then run analysis."
+              description="Add competitors and evidence, then run analysis to generate AI insights."
+              action={
+                <Button
+                  onClick={() => reanalyzeMutation.mutate()}
+                  disabled={reanalyzeMutation.isPending}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  {reanalyzeMutation.isPending ? "Analyzing…" : "Run analysis"}
+                </Button>
+              }
             />
           ) : (
             <div className="space-y-6">
@@ -274,6 +344,110 @@ function AddCompetitorForm({
             onClick={() => onAdd({ brandName, domain, socialHandle, category })}
           >
             {pending ? "Saving…" : "Add competitor"}
+          </Button>
+          <Button variant="ghost" onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+const EVIDENCE_TYPES: EvidenceType[] = [
+  "ad",
+  "caption",
+  "landing_page",
+  "campaign",
+  "offer",
+  "hook",
+  "cta",
+];
+
+function AddEvidenceForm({
+  competitors,
+  onAdd,
+  onCancel,
+  pending,
+}: {
+  competitors: Competitor[];
+  onAdd: (e: NewEvidence) => void;
+  onCancel: () => void;
+  pending?: boolean;
+}) {
+  const [competitorId, setCompetitorId] = useState(competitors[0]?.id ?? "");
+  const [type, setType] = useState<EvidenceType>("hook");
+  const [channel, setChannel] = useState("");
+  const [content, setContent] = useState("");
+
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Add evidence</CardTitle>
+        <p className="text-sm text-slate-400">
+          Capture a competitor signal — an ad, hook, offer, or caption you
+          observed. These feed the AI analysis.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-300">
+              Competitor
+            </label>
+            <select
+              value={competitorId}
+              onChange={(e) => setCompetitorId(e.target.value)}
+              className="h-10 w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 text-sm text-white ring-focus"
+            >
+              {competitors.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.brandName}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-300">
+              Type
+            </label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as EvidenceType)}
+              className="h-10 w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 text-sm text-white ring-focus"
+            >
+              {EVIDENCE_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {titleCase(t)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Input
+            label="Channel"
+            value={channel}
+            onChange={setChannel}
+            placeholder="TikTok, Email…"
+          />
+        </div>
+        <div className="mt-3">
+          <label className="mb-1.5 block text-sm font-medium text-slate-300">
+            What you observed
+          </label>
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            rows={3}
+            placeholder="e.g. POV transformation hook driving 2M views…"
+            className="w-full rounded-lg border border-white/10 bg-ink-700/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 ring-focus"
+          />
+        </div>
+        <div className="mt-4 flex gap-2">
+          <Button
+            disabled={!competitorId || !content || pending}
+            onClick={() => onAdd({ competitorId, type, channel, content })}
+          >
+            {pending ? "Saving…" : "Add evidence"}
           </Button>
           <Button variant="ghost" onClick={onCancel}>
             Cancel
