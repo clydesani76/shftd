@@ -123,6 +123,61 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* The difference / moat */}
+      <section className="relative z-10 mx-auto max-w-5xl px-6 pb-24">
+        <div className="mb-8 text-center">
+          <p className="text-xs font-semibold uppercase tracking-widest text-cyber">
+            Why SHFTD is different
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">
+            Not another marketplace or payout tool
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400">
+            Most platforms help you get paid and find people to promote your
+            offer. That&apos;s the easy part. SHFTD decides{" "}
+            <span className="text-white">what marketing to run</span> — and gets
+            smarter every campaign.
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Card className="p-6">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+              Marketplaces &amp; payout tools
+            </p>
+            <h3 className="mt-2 font-semibold text-slate-300">
+              The distribution layer
+            </h3>
+            <ul className="mt-3 space-y-2 text-sm text-slate-500">
+              <li>• Process payments &amp; payouts</li>
+              <li>• List offers, match affiliates</li>
+              <li>• Stop once the deal is done</li>
+              <li>• No view of what to actually run</li>
+            </ul>
+          </Card>
+          <Card className="border-electric-500/30 bg-electric-500/5 p-6 shadow-glow">
+            <p className="text-xs font-semibold uppercase tracking-widest text-electric-300">
+              SHFTD
+            </p>
+            <h3 className="mt-2 font-semibold text-white">
+              The decision layer — your marketing brain
+            </h3>
+            <ul className="mt-3 space-y-2 text-sm text-slate-300">
+              <li>• Reads competitors &amp; finds white space</li>
+              <li>• Recommends Proven vs Original plays, with the “why”</li>
+              <li>• Runs them end to end, then tracks ROI</li>
+              <li>• Remembers every win &amp; loss → smarter next time</li>
+            </ul>
+          </Card>
+        </div>
+
+        <p className="mx-auto mt-8 max-w-2xl text-center text-base text-slate-300">
+          They help you <span className="text-slate-400">get paid</span>. SHFTD
+          tells you <span className="gradient-text font-semibold">what to do
+          next</span> — and compounds that edge over time.
+        </p>
+      </section>
+
       <footer className="relative z-10 border-t border-white/5 py-8 text-center text-xs text-slate-500">
         SHFTD — The Marketing Operating System. © {new Date().getFullYear()}
       </footer>
