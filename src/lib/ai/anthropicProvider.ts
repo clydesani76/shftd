@@ -1,10 +1,7 @@
-// Live Anthropic provider (server-only). Implements the shared AIProvider
-// contract using the official @anthropic-ai/sdk, so insights, strategy, and
-// copy come from Claude instead of the deterministic mock generator.
-//
-// Selected automatically when ANTHROPIC_API_KEY is set (see ./index.ts). The
-// API routes that call this already fall back to the mock provider if a call
-// throws, so a transient error degrades gracefully rather than 500ing.
+// Anthropic-backed AI provider (server-only).
+// Implements the same AIProvider contract as the mock/openai providers, so it
+// drops in with no changes to routes or call sites. Selected automatically in
+// src/lib/ai/index.ts whenever ANTHROPIC_API_KEY is present.
 
 import Anthropic from "@anthropic-ai/sdk";
 import type {
@@ -16,139 +13,91 @@ import type {
   GeneratedInsight,
   GeneratedStrategy,
 } from "./types";
-import { config } from "@/lib/config";
 
-const SYSTEM_PROMPT = `You are SHFTD's marketing strategist engine. You do not write captions in a vacuum — you think like a senior growth strategist. You analyze competitor activity, identify what works, what is overused, and where the white space is, and you always explain WHY each recommendation makes sense.
+const MODEL = process.env.SHFTD_AI_MODEL || "claude-sonnet-4-6";
 
-Output rules: respond with valid JSON ONLY — no prose, no explanation, no markdown code fences. Match the exact shape and field names requested in each message.`;
+const SYSTEM_PROMPT = `You are SHFTD's marketing strategist engine. You think like a senior growth strategist: you read competitor activity, identify what is winning, what is overused, and where the white space is, and you weigh the brand's own past wins and losses before recommending anything. Always explain WHY each recommendation makes sense.
 
-// Lazily construct the client so merely importing this module never requires a
-// key (the constructor reads ANTHROPIC_API_KEY from the environment).
+Output rules: respond with a SINGLE valid JSON object and nothing else — no prose, no commentary outside the JSON, no markdown code fences. Match the exact schema the user requests, including every field name.`;
+
+let client: Anthropic | null = null;
 function getClient(): Anthropic {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error("ANTHROPIC_API_KEY not configured");
-  }
-  return new Anthropic();
-}
-
-// Parse a JSON value out of a model response, tolerating stray prose or code
-// fences by falling back to the outermost bracketed region.
-function parseJson<T>(raw: string): T {
-  let s = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
-  try {
-    return JSON.parse(s) as T;
-  } catch {
-    const candidates = [s.indexOf("["), s.indexOf("{")].filter((i) => i >= 0);
-    const start = candidates.length ? Math.min(...candidates) : -1;
-    const end = Math.max(s.lastIndexOf("]"), s.lastIndexOf("}"));
-    if (start >= 0 && end > start) {
-      return JSON.parse(s.slice(start, end + 1)) as T;
+  if (!client) {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      throw new Error(
+        "ANTHROPIC_API_KEY not configured — anthropicProvider should not be selected.",
+      );
     }
-    throw new Error("Could not parse JSON from Anthropic response");
+    client = new Anthropic({ apiKey });
   }
+  return client;
 }
 
-async function completeJson<T>(userPrompt: string, maxTokens = 4096): Promise<T> {
+// Tolerate any stray fences/whitespace and clip to the outermost JSON object.
+function extractJson(text: string): string {
+  let t = text.trim();
+  const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence) t = fence[1].trim();
+  const first = t.indexOf("{");
+  const last = t.lastIndexOf("}");
+  if (first !== -1 && last !== -1 && last > first) t = t.slice(first, last + 1);
+  return t;
+}
+
+// Single call site for the model. The system prompt constrains the reply to a
+// single JSON object; extractJson clips any stray text. (Assistant-turn
+// prefill is intentionally NOT used — it returns a 400 on claude-sonnet-4-6
+// and the rest of the 4.6+ family.)
+async function callLLM(userPrompt: string): Promise<Record<string, unknown>> {
   const res = await getClient().messages.create({
-    model: config.aiModel,
-    max_tokens: maxTokens,
+    model: MODEL,
+    max_tokens: 4096,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   });
 
-  let text = "";
-  for (const block of res.content) {
-    if (block.type === "text") text += block.text;
-  }
-  return parseJson<T>(text);
+  const textBlock = res.content.find((b) => b.type === "text");
+  const text = textBlock && textBlock.type === "text" ? textBlock.text : "";
+  return JSON.parse(extractJson(text));
 }
 
 export const anthropicProvider: AIProvider = {
   name: "anthropic",
 
-  async analyzeInsights({
-    brandName,
-    industry,
-    evidence,
-  }: AnalyzeInsightsInput): Promise<GeneratedInsight[]> {
-    const prompt = `Analyze this competitor evidence for "${brandName}" (${industry}). Categorize the findings into winning patterns, overused angles, and white-space opportunities.
-
-Evidence:
-${JSON.stringify(evidence, null, 2)}
-
-Return a JSON array of 3 to 6 objects. Each object must have exactly these fields:
-- "category": one of "winning_pattern" | "overused_angle" | "white_space"
-- "title": string (short headline)
-- "explanation": string (what's happening and why it matters)
-- "recommendation": string (what ${brandName} should do)
-- "channel": string (e.g. "TikTok", "Email", "Multi-channel")
-- "confidence": number from 0 to 100
-
-Return ONLY the JSON array.`;
-    return completeJson<GeneratedInsight[]>(prompt);
+  async analyzeInsights(
+    input: AnalyzeInsightsInput,
+  ): Promise<GeneratedInsight[]> {
+    const prompt = `Analyze this competitor evidence for "${input.brandName}" (${input.industry}). Categorize findings into winning_pattern, overused_angle, and white_space. Evidence:\n${JSON.stringify(
+      input.evidence,
+      null,
+      2,
+    )}\nReturn JSON: { "insights": GeneratedInsight[] } where each GeneratedInsight is { category, title, explanation, recommendation, channel, confidence }. category must be one of "winning_pattern" | "overused_angle" | "white_space"; confidence is 0-100.`;
+    const data = await callLLM(prompt);
+    return (data.insights as GeneratedInsight[]) ?? [];
   },
 
-  async generateStrategies({
-    brandName,
-    industry,
-    audience,
-    goals,
-    insightSummaries,
-    memory = [],
-  }: GenerateStrategiesInput): Promise<GeneratedStrategy[]> {
-    const prompt = `Generate exactly two campaign strategies for "${brandName}" (${industry}).
-Audience: ${audience}
-Goals: ${goals.join(", ")}
-Competitive insights: ${insightSummaries.join("; ") || "none provided"}
-Marketing memory (past wins/losses — bias the recommendations with these): ${
-      memory.join("; ") || "none yet"
-    }
-
-One strategy must have "path": "proven" (Safe & Proven — lower-risk, pattern-matched to what competitors already do well). The other must have "path": "original" (Bold & Original — higher-upside first-mover play from white-space/trend synthesis).
-
-Return a JSON array of EXACTLY 2 objects. Each object must have exactly these fields:
-- "path": "proven" | "original"
-- "title": string
-- "concept": string
-- "rationale": string (explain WHY, referencing the insights/memory)
-- "riskLevel": "low" | "medium" | "high"
-- "expectedUpside": string
-- "platforms": array of strings
-- "creatorRoles": array of "igniter" | "amplifier" | "closer"
-- "kpis": array of strings
-- "budgetSplit": array of objects, each { "label": string, "percent": number }, percents summing to 100
-
-Return ONLY the JSON array.`;
-    return completeJson<GeneratedStrategy[]>(prompt);
+  async generateStrategies(
+    input: GenerateStrategiesInput,
+  ): Promise<GeneratedStrategy[]> {
+    const prompt = `Generate exactly two campaign strategies for "${input.brandName}": one with path="proven" (Safe & Proven, lower risk) and one with path="original" (Bold & Original, higher upside). Audience: ${input.audience}. Goals: ${input.goals.join(
+      ", ",
+    )}. Competitor insights: ${input.insightSummaries.join(
+      "; ",
+    )}. The brand's past wins and losses (Marketing Memory) — reuse what won, avoid what failed: ${(
+      input.memory || []
+    ).join(
+      " | ",
+    )}. Return JSON: { "strategies": GeneratedStrategy[] } where each is { path, title, concept, rationale, riskLevel, expectedUpside, platforms, creatorRoles, kpis, budgetSplit }. path is "proven" | "original"; riskLevel is "low" | "medium" | "high"; creatorRoles use "igniter" | "amplifier" | "closer"; budgetSplit is an array of { label, percent } summing to 100.`;
+    const data = await callLLM(prompt);
+    return (data.strategies as GeneratedStrategy[]) ?? [];
   },
 
-  async generateCopy({
-    type,
-    platform,
-    tone,
-    audience,
-    offer,
-    brandVoice,
-    campaignName,
-    count = 4,
-  }: GenerateCopyInput): Promise<GeneratedCopy[]> {
-    const prompt = `Write ${count} distinct variants of ${type} marketing copy.
-Platform: ${platform}
-Tone: ${tone}
-Audience: ${audience}
-Offer: ${offer || "(none specified)"}
-Brand voice: ${brandVoice || "(use a strong, modern marketing voice)"}${
-      campaignName ? `\nCampaign: ${campaignName}` : ""
-    }
-
-Return a JSON array of ${count} objects. Each object must have exactly these fields:
-- "type": "${type}"
-- "platform": "${platform}"
-- "tone": "${tone}"
-- "content": string (the copy itself)
-- "score": number from 0 to 100 estimating how well it fits the brief
-
-Return ONLY the JSON array.`;
-    return completeJson<GeneratedCopy[]>(prompt);
+  async generateCopy(input: GenerateCopyInput): Promise<GeneratedCopy[]> {
+    const prompt = `Write ${input.count ?? 4} variants of ${input.type} copy for platform ${input.platform}, tone ${input.tone}, audience ${input.audience}, offer "${input.offer}", brand voice "${input.brandVoice}". Score each 0-100 for fit. Return JSON: { "variants": GeneratedCopy[] } where each is { type, platform, tone, content, score }.`;
+    const data = await callLLM(prompt);
+    return (data.variants as GeneratedCopy[]) ?? [];
   },
 };
+
+export { SYSTEM_PROMPT };
