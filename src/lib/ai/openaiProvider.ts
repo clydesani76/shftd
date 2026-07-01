@@ -20,7 +20,7 @@ import { config } from "@/lib/config";
 const SYSTEM_PROMPT = `You are SHFTD's marketing strategist engine. You do not write captions in a vacuum — you think like a senior growth strategist. You analyze competitor activity, identify what works, what is overused, and where the white space is. You produce structured JSON only, matching the requested schema. Always explain WHY each recommendation makes sense.`;
 
 async function callLLM(userPrompt: string): Promise<string> {
-  if (!config.hasAI) {
+  if (!config.hasOpenAI) {
     throw new Error(
       "OPENAI_API_KEY not configured — openaiProvider should not be selected. Falling back to mockProvider.",
     );

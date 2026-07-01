@@ -7,12 +7,12 @@ import { mockProvider } from "./mockProvider";
 import { openaiProvider } from "./openaiProvider";
 import { anthropicProvider } from "./anthropicProvider";
 
-// Prefer the live Anthropic provider when ANTHROPIC_API_KEY is set; then the
-// OpenAI provider; otherwise the deterministic mock. If a live call throws,
-// callers catch and degrade to the mock provider.
+// Pick the live provider by available key — Anthropic first, then OpenAI —
+// otherwise the mock. If a live call throws, route handlers catch and degrade
+// to the mock so the app never hard-fails.
 export const ai: AIProvider = config.hasAnthropic
   ? anthropicProvider
-  : config.hasAI
+  : config.hasOpenAI
     ? openaiProvider
     : mockProvider;
 
