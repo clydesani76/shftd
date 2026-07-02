@@ -6,7 +6,9 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type {
   AIProvider,
+  AnalyzeCompetitorInput,
   AnalyzeInsightsInput,
+  CompetitorAnalysis,
   GenerateCopyInput,
   GenerateStrategiesInput,
   GeneratedCopy,
@@ -49,10 +51,13 @@ function extractJson(text: string): string {
 // single JSON object; extractJson clips any stray text. (Assistant-turn
 // prefill is intentionally NOT used — it returns a 400 on claude-sonnet-4-6
 // and the rest of the 4.6+ family.)
-async function callLLM(userPrompt: string): Promise<Record<string, unknown>> {
+async function callLLM(
+  userPrompt: string,
+  maxTokens = 4096,
+): Promise<Record<string, unknown>> {
   const res = await getClient().messages.create({
     model: MODEL,
-    max_tokens: 4096,
+    max_tokens: maxTokens,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   });
@@ -97,6 +102,41 @@ export const anthropicProvider: AIProvider = {
     const prompt = `Write ${input.count ?? 4} variants of ${input.type} copy for platform ${input.platform}, tone ${input.tone}, audience ${input.audience}, offer "${input.offer}", brand voice "${input.brandVoice}". Score each 0-100 for fit. Return JSON: { "variants": GeneratedCopy[] } where each is { type, platform, tone, content, score }.`;
     const data = await callLLM(prompt);
     return (data.variants as GeneratedCopy[]) ?? [];
+  },
+
+  async analyzeCompetitor(
+    input: AnalyzeCompetitorInput,
+  ): Promise<CompetitorAnalysis> {
+    const site = input.siteContext
+      ? `\n\nREAL website content fetched just now (use this as primary evidence; quote specifics):\n"""\n${input.siteContext}\n"""`
+      : `\n\nNo live website content was retrievable, so base the read on category knowledge and the identifiers provided — and say so honestly in "sources" and "disclaimer".`;
+
+    const prompt = `Perform a rigorous, MEASURED competitive analysis of the competitor "${input.brandName}" for our brand "${input.ourBrand}" (industry: ${input.industry}; our audience: ${input.ourAudience}).
+Competitor identifiers — domain: ${input.domain || "unknown"}; social handle: ${input.socialHandle || "unknown"}.${site}
+
+Assess the competitor across: (1) their WEBSITE & UX, (2) GOOGLE / SEO / search presence, (3) SOCIAL PLATFORMS (Instagram, TikTok, YouTube, X, etc.), (4) the TYPES OF CAMPAIGNS they appear to run, and (5) their OFFER & POSITIONING. Score each dimension 0-100 with a concrete note. Give an overall competitive-strength score (0-100) and a threatLevel. For each channel, estimate presence and a 0-100 strength with a short assessment. List the campaign types they run with an intensity. List concrete strengths and exploitable gaps (white space).
+
+Then design EXACTLY TWO campaigns for "${input.ourBrand}" to out-compete "${input.brandName}" and drive major market growth: one path="proven" (Safe & Proven, attack their strengths with a lower-risk, pattern-matched play) and one path="original" (Bold & Original, seize a gap they ignore).
+
+Where signals are estimated rather than measured, say so plainly — do NOT fabricate precise metrics (follower counts, exact traffic). Frame estimates as estimates.
+
+Return a SINGLE JSON object exactly matching:
+{
+  "brandName": string,
+  "summary": string,
+  "threatLevel": "low" | "medium" | "high",
+  "overallScore": number,
+  "scorecard": [{ "dimension": string, "score": number, "note": string }],
+  "channels": [{ "channel": string, "presence": "none"|"weak"|"moderate"|"strong"|"unknown", "strength": number, "assessment": string }],
+  "campaignTypes": [{ "type": string, "description": string, "intensity": "low"|"medium"|"high" }],
+  "strengths": string[],
+  "gaps": string[],
+  "recommendedCampaigns": [{ "path": "proven"|"original", "title": string, "concept": string, "rationale": string, "riskLevel": "low"|"medium"|"high", "expectedUpside": string, "platforms": string[], "creatorRoles": ("igniter"|"amplifier"|"closer")[], "kpis": string[], "budgetSplit": [{ "label": string, "percent": number }] }],
+  "sources": string[],
+  "disclaimer": string
+}`;
+    const data = (await callLLM(prompt, 8000)) as unknown as CompetitorAnalysis;
+    return data;
   },
 };
 

@@ -7,9 +7,10 @@ import { PageHeader, SectionLabel, ProgressBar, EmptyState } from "@/components/
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge, InsightBadge } from "@/components/ui/badge";
+import { CompetitorAnalysisPanel } from "@/components/intelligence/competitor-analysis";
 import { timeAgo, titleCase } from "@/lib/utils";
 import type { Competitor, Evidence, EvidenceType, Insight } from "@/types";
-import { Plus, Radar, ArrowRight, Sparkles, Globe, AtSign } from "lucide-react";
+import { Plus, Radar, ArrowRight, Sparkles, Globe, AtSign, Gauge } from "lucide-react";
 
 type NewCompetitor = Omit<Competitor, "id" | "orgId" | "addedAt">;
 type NewEvidence = {
@@ -24,6 +25,7 @@ export default function IntelligencePage() {
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
   const [showAddEvidence, setShowAddEvidence] = useState(false);
+  const [analysisFor, setAnalysisFor] = useState<Competitor | null>(null);
 
   // Competitors, evidence and insights all come from the database.
   const { data: competitors = [] } = useQuery<Competitor[]>({
@@ -141,6 +143,13 @@ export default function IntelligencePage() {
         />
       )}
 
+      {analysisFor && (
+        <CompetitorAnalysisPanel
+          competitor={analysisFor}
+          onClose={() => setAnalysisFor(null)}
+        />
+      )}
+
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Competitors + evidence */}
         <div className="lg:col-span-1">
@@ -169,6 +178,17 @@ export default function IntelligencePage() {
                       </span>
                     )}
                   </div>
+                  <Button
+                    size="sm"
+                    variant={analysisFor?.id === c.id ? "secondary" : "outline"}
+                    className="mt-3 w-full"
+                    onClick={() =>
+                      setAnalysisFor((cur) => (cur?.id === c.id ? null : c))
+                    }
+                  >
+                    <Gauge className="h-3.5 w-3.5" />
+                    {analysisFor?.id === c.id ? "Hide analysis" : "Deep analysis"}
+                  </Button>
                 </Card>
               );
             })}

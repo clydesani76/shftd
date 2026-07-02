@@ -205,6 +205,17 @@ create table campaign_saved_copy (
   saved_at timestamptz not null default now()
 );
 
+-- Deep competitor analyses (Competitive Intelligence). The full measured
+-- report is stored as JSON so the UI can re-render it without recomputing.
+create table competitor_analyses (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references orgs(id) on delete cascade,
+  competitor_id uuid references ci_competitors(id) on delete cascade,
+  brand_name text not null,
+  analysis jsonb not null,
+  created_at timestamptz not null default now()
+);
+
 -- AI-generated images (Copy Studio). The file bytes live in Supabase Storage
 -- (bucket `campaign-images`); this row stores the public URL + metadata.
 create table campaign_assets (
@@ -270,6 +281,7 @@ create index on submissions (campaign_id);
 create index on copy_variants (org_id);
 create index on campaign_assets (org_id);
 create index on campaign_assets (campaign_id);
+create index on competitor_analyses (competitor_id);
 create index on ledger_entries (campaign_id);
 create index on campaign_metrics (campaign_id);
 create index on brand_memory_notes (org_id);
@@ -298,6 +310,7 @@ alter table submissions enable row level security;
 alter table copy_variants enable row level security;
 alter table campaign_saved_copy enable row level security;
 alter table campaign_assets enable row level security;
+alter table competitor_analyses enable row level security;
 alter table ledger_entries enable row level security;
 alter table campaign_metrics enable row level security;
 alter table brand_memory_notes enable row level security;
@@ -320,6 +333,7 @@ create policy "org rw recs" on strategy_recommendations for all using (org_id = 
 create policy "org rw campaigns" on campaigns for all using (org_id = current_org_id()) with check (org_id = current_org_id());
 create policy "org rw copy" on copy_variants for all using (org_id = current_org_id()) with check (org_id = current_org_id());
 create policy "org rw assets" on campaign_assets for all using (org_id = current_org_id()) with check (org_id = current_org_id());
+create policy "org rw analyses" on competitor_analyses for all using (org_id = current_org_id()) with check (org_id = current_org_id());
 create policy "org rw memory" on brand_memory_notes for all using (org_id = current_org_id()) with check (org_id = current_org_id());
 create policy "org rw biz profile" on business_profiles for all using (org_id = current_org_id()) with check (org_id = current_org_id());
 

@@ -5,7 +5,9 @@
 
 import type {
   AIProvider,
+  AnalyzeCompetitorInput,
   AnalyzeInsightsInput,
+  CompetitorAnalysis,
   GenerateCopyInput,
   GenerateStrategiesInput,
   GeneratedCopy,
@@ -183,5 +185,165 @@ export const mockProvider: AIProvider = {
       // Score blends a base by position with a stable jitter.
       score: Math.min(96, 72 + (pool.length - i) * 4 + (hash(content) % 7)),
     }));
+  },
+
+  async analyzeCompetitor({
+    brandName,
+    domain,
+    socialHandle,
+    industry,
+    ourBrand,
+    ourAudience,
+    siteContext,
+  }: AnalyzeCompetitorInput): Promise<CompetitorAnalysis> {
+    const h = hash(brandName);
+    const score = (base: number, salt: string) =>
+      Math.min(94, Math.max(38, base + (hash(brandName + salt) % 22) - 8));
+    const overall = score(70, "overall");
+
+    return {
+      brandName,
+      summary: `${brandName} is an established ${industry} player with a polished web presence and steady social output, but leans on category-generic messaging. That predictability is the opening: ${ourBrand} can win by pattern-matching what already works for them while claiming the moments they overlook.`,
+      threatLevel: overall >= 75 ? "high" : overall >= 55 ? "medium" : "low",
+      overallScore: overall,
+      scorecard: [
+        {
+          dimension: "Website & UX",
+          score: score(74, "web"),
+          note: siteContext
+            ? "Clear value proposition and conversion path observed on the homepage; strong first impression."
+            : "Assumed competent based on category norms — live page could not be fetched.",
+        },
+        {
+          dimension: "Google / SEO",
+          score: score(64, "seo"),
+          note: "Ranks for branded and a few category terms; thin on long-tail informational content (estimated).",
+        },
+        {
+          dimension: "Social presence",
+          score: score(68, "social"),
+          note: "Consistent posting cadence, but formats are repetitive and rarely trend-setting.",
+        },
+        {
+          dimension: "Campaigns",
+          score: score(66, "camp"),
+          note: "Reliable creator + paid-social mix; few bold, ownable narrative plays.",
+        },
+        {
+          dimension: "Offer & Positioning",
+          score: score(71, "offer"),
+          note: "Competitive offer, but positioning overlaps with the category — limited differentiation.",
+        },
+      ],
+      channels: [
+        {
+          channel: "Instagram",
+          presence: "strong",
+          strength: score(72, "ig"),
+          assessment: `Primary channel${socialHandle ? ` (${socialHandle})` : ""} — polished but formulaic Reels and carousels.`,
+        },
+        {
+          channel: "TikTok",
+          presence: "moderate",
+          strength: score(58, "tt"),
+          assessment: "Present but under-invested; low native-creator volume — a clear opening.",
+        },
+        {
+          channel: "Google Search",
+          presence: "moderate",
+          strength: score(60, "g"),
+          assessment: "Owns branded search; weak on high-intent problem/solution queries (estimated).",
+        },
+        {
+          channel: "YouTube",
+          presence: "weak",
+          strength: score(44, "yt"),
+          assessment: "Minimal long-form footprint — untapped authority-building space.",
+        },
+        {
+          channel: "Email",
+          presence: "moderate",
+          strength: score(62, "em"),
+          assessment: "Standard lifecycle flows; little community or movement-building.",
+        },
+      ],
+      campaignTypes: [
+        {
+          type: "UGC / creator",
+          description: "Steady stream of creator testimonials and product demos.",
+          intensity: "high",
+        },
+        {
+          type: "Paid social",
+          description: "Always-on prospecting + retargeting on Meta.",
+          intensity: "medium",
+        },
+        {
+          type: "Seasonal promotion",
+          description: "Discount-led pushes around key retail moments.",
+          intensity: "medium",
+        },
+        {
+          type: "Influencer",
+          description: "Occasional mid-tier partnerships; few flagship collaborations.",
+          intensity: "low",
+        },
+      ],
+      strengths: [
+        "Consistent, professional brand presentation across channels",
+        "Established branded-search demand and repeat-customer base",
+        "Reliable creator pipeline producing steady social proof",
+      ],
+      gaps: [
+        "Repetitive, category-generic hooks — vulnerable to a sharper narrative",
+        "Under-invested on TikTok and YouTube — open territory",
+        "No ownable cultural moment or movement — pure product marketing",
+        "Thin high-intent SEO content — winnable search demand",
+      ],
+      recommendedCampaigns: [
+        {
+          path: "proven",
+          title: `Out-Hook ${brandName}`,
+          concept: `Pattern-match ${brandName}'s best-performing creator format for ${ourBrand}, but lead with a sharper first-person outcome hook aimed at ${ourAudience}.`,
+          rationale:
+            "Attacks their strongest channel with a lower-variance, proven structure — capturing the same demand with a more differentiated hook.",
+          riskLevel: "low",
+          expectedUpside: "Efficient top-of-funnel reach and CAC at or below their benchmark.",
+          platforms: ["Instagram", "TikTok"],
+          creatorRoles: ["igniter", "amplifier"],
+          kpis: ["Views", "Hook retention %", "CTR to landing", "First orders"],
+          budgetSplit: [
+            { label: "Igniter creators", percent: 50 },
+            { label: "Amplifier creators", percent: 25 },
+            { label: "Performance bonus pool", percent: 25 },
+          ],
+        },
+        {
+          path: "original",
+          title: "Own the Gap They Ignore",
+          concept: `Originate a movement around the under-served moment ${brandName} overlooks — seed on TikTok/YouTube where they're weakest, and rally ${ourAudience} around it.`,
+          rationale:
+            "Seizes white space competitors under-invest in, building defensible category ownership and compounding organic reach.",
+          riskLevel: "high",
+          expectedUpside: "Category ownership of an unclaimed moment; compounding UGC and search lift.",
+          platforms: ["TikTok", "YouTube", "Instagram"],
+          creatorRoles: ["igniter", "amplifier", "closer"],
+          kpis: ["Branded hashtag volume", "Repeat UGC", "Search lift", "Conversions"],
+          budgetSplit: [
+            { label: "Igniter (seed)", percent: 40 },
+            { label: "Amplifier (scale)", percent: 30 },
+            { label: "Closer (convert)", percent: 15 },
+            { label: "Performance bonus pool", percent: 15 },
+          ],
+        },
+      ],
+      sources: [
+        siteContext ? "Live website fetch" : "Website fetch unavailable",
+        "SHFTD category knowledge (offline demo model)",
+        domain ? `Domain: ${domain}` : "No domain provided",
+      ],
+      disclaimer:
+        "Demo analysis: social and search figures are directional estimates, not measured analytics. Connect live data sources (site fetch + platform/SEO APIs) for verified metrics.",
+    };
   },
 };
