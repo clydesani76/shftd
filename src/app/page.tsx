@@ -22,6 +22,15 @@ const LAYERS = [
   { icon: Database, title: "Marketing Memory", copy: "Remember what worked and failed so every recommendation gets smarter." },
 ];
 
+// Capability stats — the shape of the product, not claimed traction. Keeps the
+// investor story honest while giving the hero an at-a-glance anchor.
+const STATS = [
+  { value: "6", label: "layers, one system", sub: "Intel → strategy → copy → creators → ROI → memory" },
+  { value: "2", label: "strategic paths", sub: "Safe & Proven vs Bold & Original, side by side" },
+  { value: "1", label: "decision layer", sub: "What to run next — not just who to pay" },
+  { value: "∞", label: "compounding memory", sub: "Every campaign makes the next one smarter" },
+];
+
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-grid">
@@ -73,6 +82,21 @@ export default function LandingPage() {
         <p className="mt-4 text-xs text-slate-500">
           No setup required — explore with realistic demo data.
         </p>
+      </section>
+
+      {/* Capability stat band */}
+      <section className="relative z-10 mx-auto mt-16 max-w-5xl px-6">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {STATS.map((s) => (
+            <Card key={s.label} className="p-5 text-center">
+              <p className="gradient-text text-4xl font-bold leading-none">
+                {s.value}
+              </p>
+              <p className="mt-2 text-sm font-semibold text-header">{s.label}</p>
+              <p className="mt-1 text-xs text-slate-500">{s.sub}</p>
+            </Card>
+          ))}
+        </div>
       </section>
 
       {/* Two paths */}
@@ -176,6 +200,31 @@ export default function LandingPage() {
           tells you <span className="gradient-text font-semibold">what to do
           next</span> — and compounds that edge over time.
         </p>
+      </section>
+
+      {/* Closing CTA */}
+      <section className="relative z-10 mx-auto max-w-5xl px-6 pb-24">
+        <Card className="border-electric-500/30 bg-electric-500/5 p-10 text-center shadow-glow sm:p-14">
+          <h2 className="text-balance text-3xl font-bold text-header sm:text-4xl">
+            Ready to set the trend?
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-pretty text-slate-500">
+            Explore the full system with realistic demo data — no signup, no
+            setup. See what to run next in under a minute.
+          </p>
+          <div className="mt-8 flex items-center justify-center gap-3">
+            <Link href="/dashboard">
+              <Button size="lg">
+                Launch the demo <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Link href="/signup">
+              <Button size="lg" variant="outline">
+                Create account
+              </Button>
+            </Link>
+          </div>
+        </Card>
       </section>
 
       <footer className="relative z-10 border-t border-slate-200 py-8 text-center text-xs text-slate-500">
