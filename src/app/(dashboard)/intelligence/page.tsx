@@ -26,6 +26,7 @@ export default function IntelligencePage() {
   const [showAdd, setShowAdd] = useState(false);
   const [showAddEvidence, setShowAddEvidence] = useState(false);
   const [analysisFor, setAnalysisFor] = useState<Competitor | null>(null);
+  const [autoRunFor, setAutoRunFor] = useState<string | null>(null);
 
   // Competitors, evidence and insights all come from the database.
   const { data: competitors = [] } = useQuery<Competitor[]>({
@@ -62,9 +63,15 @@ export default function IntelligencePage() {
       if (!res.ok) throw new Error("Failed to add competitor");
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["competitors"] });
       setShowAdd(false);
+      // Immediately run a real-world deep analysis on the new competitor.
+      const created: Competitor | undefined = data?.competitor;
+      if (created) {
+        setAnalysisFor(created);
+        setAutoRunFor(created.id);
+      }
     },
   });
 
@@ -146,7 +153,11 @@ export default function IntelligencePage() {
       {analysisFor && (
         <CompetitorAnalysisPanel
           competitor={analysisFor}
-          onClose={() => setAnalysisFor(null)}
+          autoRun={autoRunFor === analysisFor.id}
+          onClose={() => {
+            setAnalysisFor(null);
+            setAutoRunFor(null);
+          }}
         />
       )}
 
@@ -347,8 +358,8 @@ function AddCompetitorForm({
       <CardHeader>
         <CardTitle>Add a competitor</CardTitle>
         <p className="text-sm text-slate-500">
-          Track by brand name, domain, or social handle. Evidence and AI
-          insights build from here.
+          Add a domain and SHFTD will fetch their live site, detect their social
+          profiles and marketing stack, and run a deep analysis automatically.
         </p>
       </CardHeader>
       <CardContent>

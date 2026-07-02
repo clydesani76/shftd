@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,9 @@ import {
   Check,
   Plus,
   ArrowRight,
+  ExternalLink,
+  ShieldCheck,
+  Cpu,
 } from "lucide-react";
 
 const THREAT: Record<string, { tone: "green" | "amber" | "electric"; label: string }> = {
@@ -40,9 +43,11 @@ const INTENSITY: Record<string, string> = {
 export function CompetitorAnalysisPanel({
   competitor,
   onClose,
+  autoRun = false,
 }: {
   competitor: Competitor;
   onClose: () => void;
+  autoRun?: boolean;
 }) {
   const queryClient = useQueryClient();
   const [meta, setMeta] = useState<{ provider: string; siteFetched: boolean } | null>(
@@ -77,6 +82,16 @@ export function CompetitorAnalysisPanel({
       setMeta({ provider: data.provider, siteFetched: data.siteFetched });
     },
   });
+
+  // Auto-analyze a just-added competitor: fire once on mount.
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (autoRun && !autoRan.current) {
+      autoRan.current = true;
+      run.mutate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRun]);
 
   return (
     <Card className="mb-6 border-electric-500/30 shadow-glow">
@@ -194,6 +209,55 @@ function Report({
             : "website could not be fetched — estimates used"}
         </p>
       )}
+
+      {/* Verified real-world signals scraped from their live site */}
+      {analysis.discovered &&
+        (analysis.discovered.socialLinks.length > 0 ||
+          analysis.discovered.detectedTech.length > 0) && (
+          <div className="rounded-xl border border-teal-500/20 bg-teal-500/[0.04] p-4">
+            <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-teal-700">
+              <ShieldCheck className="h-4 w-4" /> Verified from their live site
+              <span className="font-normal text-teal-600/70">
+                — real, not estimated
+              </span>
+            </p>
+            {analysis.discovered.socialLinks.length > 0 && (
+              <div className="mb-3">
+                <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-slate-500">
+                  Social profiles found
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {analysis.discovered.socialLinks.map((s) => (
+                    <a
+                      key={s.platform}
+                      href={s.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 transition-colors hover:border-electric-400 hover:text-electric-700"
+                    >
+                      {s.platform}
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+            {analysis.discovered.detectedTech.length > 0 && (
+              <div>
+                <p className="mb-1.5 flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-slate-500">
+                  <Cpu className="h-3 w-3" /> Marketing tech detected
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {analysis.discovered.detectedTech.map((t) => (
+                    <Badge key={t} tone="cyber">
+                      {t}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
       {/* Scorecard */}
       <Section icon={Gauge} title="Competitive scorecard">

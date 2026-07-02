@@ -108,7 +108,7 @@ export const anthropicProvider: AIProvider = {
     input: AnalyzeCompetitorInput,
   ): Promise<CompetitorAnalysis> {
     const site = input.siteContext
-      ? `\n\nREAL website content fetched just now (use this as primary evidence; quote specifics):\n"""\n${input.siteContext}\n"""`
+      ? `\n\nREAL signals fetched from their live site just now — treat as PRIMARY evidence and quote specifics. The "SOCIAL PROFILES FOUND ON SITE" and "MARKETING TECH DETECTED" lines are verified facts: base channel-presence and campaign-type reads on them (e.g. a Meta Pixel means they run Facebook/Instagram retargeting; Klaviyo means email lifecycle; a TikTok profile means active TikTok):\n"""\n${input.siteContext}\n"""`
       : `\n\nNo live website content was retrievable, so base the read on category knowledge and the identifiers provided — and say so honestly in "sources" and "disclaimer".`;
 
     const prompt = `Perform a rigorous, MEASURED competitive analysis of the competitor "${input.brandName}" for our brand "${input.ourBrand}" (industry: ${input.industry}; our audience: ${input.ourAudience}).

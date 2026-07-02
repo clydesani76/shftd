@@ -105,6 +105,12 @@ export interface CompetitorAnalysis {
   recommendedCampaigns: GeneratedStrategy[]; // proven + original, to out-compete
   sources: string[]; // what informed the read (e.g. "Live website fetch")
   disclaimer: string; // honesty note about estimated vs. measured signals
+  // REAL signals scraped from the competitor's live site (not AI-generated).
+  discovered?: {
+    socialLinks: { platform: string; url: string }[];
+    detectedTech: string[];
+    siteUrl: string;
+  };
 }
 
 export interface AnalyzeCompetitorInput {

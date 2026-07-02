@@ -100,6 +100,10 @@ export async function POST(req: Request) {
     provider = "mock-fallback";
   }
 
+  // Attach the REAL signals we scraped from their live site (independent of the
+  // AI). This is verifiable fact, shown separately from AI estimates.
+  analysis.discovered = site.discovered;
+
   try {
     await saveAnalysis(competitorId, analysis);
   } catch {
