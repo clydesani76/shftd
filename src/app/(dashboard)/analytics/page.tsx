@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge, PathBadge } from "@/components/ui/badge";
 import {
+  CompareBars,
   CompareLines,
   Donut,
   SimpleBars,
@@ -51,6 +52,31 @@ export default function AnalyticsPage() {
       .filter((m) => getCampaign(m.campaignId)?.path === p)
       .reduce((s, m) => s + m.revenue, 0),
   }));
+
+  // Average performance per path for the head-to-head comparison.
+  const byPath = (p: "proven" | "original") =>
+    metrics.filter((m) => getCampaign(m.campaignId)?.path === p);
+  const avg = (arr: typeof metrics, sel: (m: (typeof metrics)[number]) => number) =>
+    arr.length ? arr.reduce((s, m) => s + sel(m), 0) / arr.length : 0;
+  const proven = byPath("proven");
+  const original = byPath("original");
+  const headToHead = [
+    {
+      label: "Avg ROAS",
+      proven: +avg(proven, (m) => m.roas).toFixed(2),
+      original: +avg(original, (m) => m.roas).toFixed(2),
+    },
+    {
+      label: "Avg CTR %",
+      proven: +avg(proven, (m) => m.ctr).toFixed(2),
+      original: +avg(original, (m) => m.ctr).toFixed(2),
+    },
+    {
+      label: "Conv rate %",
+      proven: +avg(proven, (m) => (m.clicks ? (m.conversions / m.clicks) * 100 : 0)).toFixed(2),
+      original: +avg(original, (m) => (m.clicks ? (m.conversions / m.clicks) * 100 : 0)).toFixed(2),
+    },
+  ];
 
   return (
     <div>
@@ -102,6 +128,24 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Proven vs Original — head to head</CardTitle>
+            <p className="text-sm text-slate-500">
+              Average efficiency by strategy path across live campaigns.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <CompareBars
+              data={headToHead}
+              series={[
+                { key: "proven", name: "Safe & Proven", color: CHART_COLORS[1] },
+                { key: "original", name: "Bold & Original", color: CHART_COLORS[0] },
+              ]}
+            />
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Revenue by campaign</CardTitle>

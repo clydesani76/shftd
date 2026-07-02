@@ -132,6 +132,40 @@ export function SimpleBars({
   );
 }
 
+export function CompareBars({
+  data,
+  series,
+  xKey = "label",
+  height = 260,
+}: {
+  data: Record<string, unknown>[];
+  series: { key: string; color: string; name: string }[];
+  xKey?: string;
+  height?: number;
+}) {
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <BarChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+        <CartesianGrid stroke={GRID} vertical={false} />
+        <XAxis dataKey={xKey} {...AXIS} tickLine={false} axisLine={false} />
+        <YAxis {...AXIS} tickLine={false} axisLine={false} />
+        <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: "rgba(108,92,231,0.05)" }} />
+        <Legend wrapperStyle={{ fontSize: 12 }} />
+        {series.map((s) => (
+          <Bar
+            key={s.key}
+            dataKey={s.key}
+            name={s.name}
+            fill={s.color}
+            radius={[4, 4, 0, 0]}
+            maxBarSize={44}
+          />
+        ))}
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
 export function Donut({
   data,
   height = 220,

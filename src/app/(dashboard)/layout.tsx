@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { InvestorTour } from "@/components/dashboards/investor-tour";
 
 export default function DashboardLayout({
   children,
@@ -17,6 +18,7 @@ export default function DashboardLayout({
           <div className="mx-auto max-w-7xl animate-fade-in">{children}</div>
         </main>
       </div>
+      <InvestorTour />
     </div>
   );
 }

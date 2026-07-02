@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge, InsightBadge, PathBadge, StatusBadge } from "@/components/ui/badge";
 import { TrendArea } from "@/components/charts/charts";
 import { GoldenPath } from "@/components/dashboards/golden-path";
+import { DemoData } from "@/components/dashboards/demo-data";
 import { useQuery } from "@tanstack/react-query";
 import {
   getInsights,
@@ -40,7 +41,7 @@ const TREND = [
 export function BusinessDashboard() {
   // Campaigns are real (from the database); insights, recommendations and
   // performance metrics remain illustrative until those modules are migrated.
-  const { data: campaigns = [] } = useQuery<Campaign[]>({
+  const { data: campaigns = [], isFetched } = useQuery<Campaign[]>({
     queryKey: ["campaigns"],
     queryFn: async () => {
       const res = await fetch("/api/campaigns");
@@ -72,6 +73,8 @@ export function BusinessDashboard() {
       />
 
       <GoldenPath />
+
+      {isFetched && <DemoData empty={campaigns.length === 0} />}
 
       {/* Top stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
