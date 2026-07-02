@@ -288,24 +288,28 @@ export default function CopyStudioPage() {
         </div>
       </div>
 
-      {mode === "image" && <ImagePanel />}
+      {mode === "image" && <ImagePanel campaigns={campaigns} />}
     </div>
   );
 }
 
-function ImagePanel() {
+function ImagePanel({ campaigns }: { campaigns: Campaign[] }) {
   const [prompt, setPrompt] = useState("");
   const [size, setSize] = useState<
     "1024x1024" | "1536x1024" | "1024x1536"
   >("1024x1024");
   const [count, setCount] = useState(1);
+  const [campaignId, setCampaignId] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<{ url: string; prompt: string }[]>([]);
   const [provider, setProvider] = useState<string | null>(null);
+  const [saved, setSaved] = useState<Set<number>>(new Set());
+  const [saving, setSaving] = useState<number | null>(null);
 
   async function generate() {
     if (!prompt.trim()) return;
     setLoading(true);
+    setSaved(new Set());
     try {
       const res = await fetch("/api/ai/image", {
         method: "POST",
@@ -317,6 +321,29 @@ function ImagePanel() {
       setProvider(data.provider ?? null);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function saveToCampaign(i: number, img: { url: string; prompt: string }) {
+    setSaving(i);
+    try {
+      const res = await fetch("/api/assets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          campaignId: campaignId || undefined,
+          dataUrl: img.url,
+          prompt: img.prompt,
+          size,
+          provider: provider ?? "placeholder",
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+      setSaved((prev) => new Set(prev).add(i));
+    } catch {
+      // Leave unsaved so the user can retry.
+    } finally {
+      setSaving(null);
     }
   }
 
@@ -380,6 +407,21 @@ function ImagePanel() {
               ))}
             </div>
           </div>
+          <div>
+            <Label>Save to campaign (optional)</Label>
+            <select
+              value={campaignId}
+              onChange={(e) => setCampaignId(e.target.value)}
+              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 ring-focus"
+            >
+              <option value="">None</option>
+              {campaigns.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <Button
             className="w-full"
             onClick={generate}
@@ -417,15 +459,26 @@ function ImagePanel() {
                   alt={img.prompt}
                   className="aspect-square w-full object-cover"
                 />
-                <div className="flex items-center justify-between p-3">
+                <div className="flex items-center justify-between gap-2 p-3">
                   <span className="text-xs text-slate-500">{size}</span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => download(img.url, i)}
-                  >
-                    <Download className="h-3.5 w-3.5" /> Download
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant={saved.has(i) ? "secondary" : "outline"}
+                      onClick={() => saveToCampaign(i, img)}
+                      disabled={saved.has(i) || saving === i}
+                    >
+                      <Bookmark className="h-3.5 w-3.5" />
+                      {saved.has(i) ? "Saved" : saving === i ? "Saving…" : "Save"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => download(img.url, i)}
+                    >
+                      <Download className="h-3.5 w-3.5" /> Download
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}

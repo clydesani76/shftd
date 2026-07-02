@@ -205,6 +205,19 @@ create table campaign_saved_copy (
   saved_at timestamptz not null default now()
 );
 
+-- AI-generated images (Copy Studio). The file bytes live in Supabase Storage
+-- (bucket `campaign-images`); this row stores the public URL + metadata.
+create table campaign_assets (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references orgs(id) on delete cascade,
+  campaign_id uuid references campaigns(id) on delete set null,
+  url text not null,
+  prompt text,
+  size text,
+  provider text,
+  created_at timestamptz not null default now()
+);
+
 -- ── Payouts & ledger ────────────────────────────────────────────
 create table ledger_entries (
   id uuid primary key default gen_random_uuid(),
@@ -255,6 +268,8 @@ create index on campaigns (status);
 create index on campaign_applications (campaign_id);
 create index on submissions (campaign_id);
 create index on copy_variants (org_id);
+create index on campaign_assets (org_id);
+create index on campaign_assets (campaign_id);
 create index on ledger_entries (campaign_id);
 create index on campaign_metrics (campaign_id);
 create index on brand_memory_notes (org_id);
@@ -282,6 +297,7 @@ alter table campaign_applications enable row level security;
 alter table submissions enable row level security;
 alter table copy_variants enable row level security;
 alter table campaign_saved_copy enable row level security;
+alter table campaign_assets enable row level security;
 alter table ledger_entries enable row level security;
 alter table campaign_metrics enable row level security;
 alter table brand_memory_notes enable row level security;
@@ -303,6 +319,7 @@ create policy "org rw insights" on ci_insights for all using (org_id = current_o
 create policy "org rw recs" on strategy_recommendations for all using (org_id = current_org_id()) with check (org_id = current_org_id());
 create policy "org rw campaigns" on campaigns for all using (org_id = current_org_id()) with check (org_id = current_org_id());
 create policy "org rw copy" on copy_variants for all using (org_id = current_org_id()) with check (org_id = current_org_id());
+create policy "org rw assets" on campaign_assets for all using (org_id = current_org_id()) with check (org_id = current_org_id());
 create policy "org rw memory" on brand_memory_notes for all using (org_id = current_org_id()) with check (org_id = current_org_id());
 create policy "org rw biz profile" on business_profiles for all using (org_id = current_org_id()) with check (org_id = current_org_id());
 
@@ -319,3 +336,14 @@ create policy "auth write submissions" on submissions for insert with check (aut
 create policy "auth read creators" on creator_profiles for select using (auth.uid() is not null);
 create policy "auth read metrics" on campaign_metrics for select using (auth.uid() is not null);
 create policy "auth read ledger" on ledger_entries for select using (auth.uid() is not null);
+
+-- ════════════════════════════════════════════════════════════════
+-- Storage
+-- Copy Studio images are uploaded to a public bucket named
+-- `campaign-images`. The app auto-creates it via the service role on
+-- first save, but you can also create it manually in the Supabase
+-- dashboard (Storage → New bucket → name `campaign-images`, Public).
+-- ════════════════════════════════════════════════════════════════
+insert into storage.buckets (id, name, public)
+values ('campaign-images', 'campaign-images', true)
+on conflict (id) do nothing;

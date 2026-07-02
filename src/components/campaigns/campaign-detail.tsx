@@ -32,7 +32,13 @@ interface AppView {
   appliedAt: string;
 }
 import { cn, formatCompact, formatCurrency, formatDate, titleCase } from "@/lib/utils";
-import type { Campaign, CopyVariant, Submission, SubmissionStatus } from "@/types";
+import type {
+  Campaign,
+  CampaignAsset,
+  CopyVariant,
+  Submission,
+  SubmissionStatus,
+} from "@/types";
 import {
   Calendar,
   Users,
@@ -43,9 +49,17 @@ import {
   RotateCcw,
   ExternalLink,
   Megaphone,
+  Image as ImageIcon,
 } from "lucide-react";
 
-const TABS = ["Blueprint", "Applications", "Submissions", "Copy", "Performance"] as const;
+const TABS = [
+  "Blueprint",
+  "Applications",
+  "Submissions",
+  "Copy",
+  "Images",
+  "Performance",
+] as const;
 type Tab = (typeof TABS)[number];
 
 export function CampaignDetail({ campaignId }: { campaignId: string }) {
@@ -96,6 +110,16 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
       const res = await fetch(`/api/copy?campaignId=${campaignId}`);
       const data = await res.json();
       return data.copy ?? [];
+    },
+  });
+
+  // AI-generated images saved to this campaign (from Storage + the database).
+  const { data: assets = [] } = useQuery<CampaignAsset[]>({
+    queryKey: ["assets", campaignId],
+    queryFn: async () => {
+      const res = await fetch(`/api/assets?campaignId=${campaignId}`);
+      const data = await res.json();
+      return data.assets ?? [];
     },
   });
 
@@ -398,6 +422,44 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
               Generate more in Copy Studio
             </Button>
           </Link>
+        </div>
+      )}
+
+      {tab === "Images" && (
+        <div>
+          {assets.length === 0 ? (
+            <Card className="p-8 text-center text-slate-500">
+              <ImageIcon className="mx-auto mb-2 h-6 w-6 text-slate-600" />
+              No images yet. Generate visuals in Copy Studio and save them here.
+              <div className="mt-4">
+                <Link href="/copy-studio">
+                  <Button variant="outline">Open Copy Studio</Button>
+                </Link>
+              </div>
+            </Card>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {assets.map((a) => (
+                <Card key={a.id} className="overflow-hidden p-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={a.url}
+                    alt={a.prompt}
+                    className="aspect-square w-full object-cover"
+                  />
+                  <div className="space-y-1 p-3">
+                    <p className="line-clamp-2 text-xs text-slate-600">
+                      {a.prompt}
+                    </p>
+                    <p className="text-[11px] text-slate-400">
+                      {a.size}
+                      {a.provider ? ` · ${a.provider}` : ""}
+                    </p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

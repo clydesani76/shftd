@@ -230,6 +230,18 @@ export interface SavedCopy {
   savedAt: ISODate;
 }
 
+// AI-generated image saved (and hosted) for a campaign's creative library.
+export interface CampaignAsset {
+  id: UUID;
+  orgId: UUID;
+  campaignId?: UUID;
+  url: string; // public Storage URL (or data URL in demo mode)
+  prompt: string;
+  size: string; // e.g. "1024x1024"
+  provider: string; // "openai" | "placeholder" | ...
+  createdAt: ISODate;
+}
+
 // ── Payouts & ledger ──────────────────────────────────────────
 export type LedgerType =
   | "base_pay"
