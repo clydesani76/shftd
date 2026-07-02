@@ -10,7 +10,15 @@ import { getBusinessProfile } from "@/lib/data";
 import { cn, titleCase } from "@/lib/utils";
 import type { Campaign, CopyType } from "@/types";
 import type { GeneratedCopy } from "@/lib/ai/types";
-import { Sparkles, Copy, Check, Bookmark, PenLine } from "lucide-react";
+import {
+  Sparkles,
+  Copy,
+  Check,
+  Bookmark,
+  PenLine,
+  Image as ImageIcon,
+  Download,
+} from "lucide-react";
 
 const COPY_TYPES: CopyType[] = [
   "hook",
@@ -38,6 +46,7 @@ export default function CopyStudioPage() {
     },
   });
 
+  const [mode, setMode] = useState<"copy" | "image">("copy");
   const [type, setType] = useState<CopyType>("hook");
   const [platform, setPlatform] = useState("TikTok");
   const [tone, setTone] = useState("Bold");
@@ -107,10 +116,36 @@ export default function CopyStudioPage() {
     <div>
       <PageHeader
         title="AI Copy Studio"
-        subtitle="Generate scored, on-brand copy for every part of the campaign."
+        subtitle="Generate scored, on-brand copy and imagery for your campaigns."
       />
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      {/* Copy / Images mode toggle */}
+      <div className="mb-6 inline-flex gap-1 rounded-lg border border-slate-200 bg-white p-0.5">
+        <button
+          onClick={() => setMode("copy")}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+            mode === "copy"
+              ? "bg-electric-500/15 text-slate-900"
+              : "text-slate-500 hover:text-slate-900",
+          )}
+        >
+          <PenLine className="h-4 w-4" /> Copy
+        </button>
+        <button
+          onClick={() => setMode("image")}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+            mode === "image"
+              ? "bg-electric-500/15 text-slate-900"
+              : "text-slate-500 hover:text-slate-900",
+          )}
+        >
+          <ImageIcon className="h-4 w-4" /> Images
+        </button>
+      </div>
+
+      <div className={cn("grid gap-6 lg:grid-cols-3", mode !== "copy" && "hidden")}>
         {/* Controls */}
         <Card className="lg:col-span-1">
           <CardHeader>
@@ -251,6 +286,151 @@ export default function CopyStudioPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {mode === "image" && <ImagePanel />}
+    </div>
+  );
+}
+
+function ImagePanel() {
+  const [prompt, setPrompt] = useState("");
+  const [size, setSize] = useState<
+    "1024x1024" | "1536x1024" | "1024x1536"
+  >("1024x1024");
+  const [count, setCount] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [images, setImages] = useState<{ url: string; prompt: string }[]>([]);
+  const [provider, setProvider] = useState<string | null>(null);
+
+  async function generate() {
+    if (!prompt.trim()) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/ai/image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, size, count }),
+      });
+      const data = await res.json();
+      setImages(data.images ?? []);
+      setProvider(data.provider ?? null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function download(url: string, i: number) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `shftd-image-${i + 1}.${
+      url.startsWith("data:image/svg") ? "svg" : "png"
+    }`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  const providerNote =
+    provider === "openai"
+      ? "Generated with OpenAI gpt-image-1"
+      : provider === "placeholder" || provider === "placeholder-fallback"
+        ? "Placeholder images — add OPENAI_API_KEY for real generation"
+        : null;
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-3">
+      <Card className="lg:col-span-1">
+        <CardHeader>
+          <CardTitle>Image brief</CardTitle>
+          <p className="text-sm text-slate-500">Describe the visual you want.</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>Prompt</Label>
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              rows={4}
+              placeholder="e.g. A bright, modern dental office with a smiling patient, soft daylight, clean minimalist style, room for text on the left"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 ring-focus"
+            />
+          </div>
+          <div>
+            <Label>Aspect</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {(["1024x1024", "1536x1024", "1024x1536"] as const).map((s) => (
+                <Chip key={s} active={size === s} onClick={() => setSize(s)}>
+                  {s === "1024x1024"
+                    ? "Square"
+                    : s === "1536x1024"
+                      ? "Landscape"
+                      : "Portrait"}
+                </Chip>
+              ))}
+            </div>
+          </div>
+          <div>
+            <Label>How many</Label>
+            <div className="flex gap-1.5">
+              {[1, 2, 3, 4].map((n) => (
+                <Chip key={n} active={count === n} onClick={() => setCount(n)}>
+                  {n}
+                </Chip>
+              ))}
+            </div>
+          </div>
+          <Button
+            className="w-full"
+            onClick={generate}
+            disabled={loading || !prompt.trim()}
+          >
+            <Sparkles className="h-4 w-4" />
+            {loading ? "Generating…" : "Generate images"}
+          </Button>
+          {providerNote && (
+            <p className="text-center text-xs text-slate-500">{providerNote}</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="lg:col-span-2">
+        {images.length === 0 ? (
+          <Card className="flex h-full min-h-[300px] flex-col items-center justify-center p-12 text-center">
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-electric-500/10 text-electric-600">
+              <ImageIcon className="h-6 w-6" />
+            </div>
+            <p className="font-medium text-slate-900">
+              Your images will appear here
+            </p>
+            <p className="mt-1 text-sm text-slate-500">
+              Describe the visual and hit generate.
+            </p>
+          </Card>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {images.map((img, i) => (
+              <Card key={i} className="overflow-hidden p-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img.url}
+                  alt={img.prompt}
+                  className="aspect-square w-full object-cover"
+                />
+                <div className="flex items-center justify-between p-3">
+                  <span className="text-xs text-slate-500">{size}</span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => download(img.url, i)}
+                  >
+                    <Download className="h-3.5 w-3.5" /> Download
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
