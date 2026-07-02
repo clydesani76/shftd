@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge, InsightBadge, PathBadge, StatusBadge } from "@/components/ui/badge";
 import { TrendArea } from "@/components/charts/charts";
+import { GoldenPath } from "@/components/dashboards/golden-path";
 import { useQuery } from "@tanstack/react-query";
 import {
   getInsights,
@@ -69,6 +70,8 @@ export function BusinessDashboard() {
           </Link>
         }
       />
+
+      <GoldenPath />
 
       {/* Top stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
