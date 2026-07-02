@@ -6,6 +6,7 @@ export const maxDuration = 60;
 import { NextResponse } from "next/server";
 import { ai, mockProvider } from "@/lib/ai";
 import { fetchSiteContext } from "@/lib/ai/siteContext";
+import { fetchMetaAds } from "@/lib/intel/metaAds";
 import { listCompetitors } from "@/lib/db/competitors";
 import { getAnalysis, saveAnalysis } from "@/lib/db/analysis";
 import { ORG, BUSINESS_PROFILE } from "@/lib/mock/data";
@@ -72,8 +73,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Competitor not found" }, { status: 404 });
   }
 
-  // Ground the analysis in real page content where possible.
-  const site = await fetchSiteContext(competitor.domain);
+  // Ground the analysis in real signals: their live site + their real ads from
+  // the Meta Ad Library (both best-effort, run in parallel).
+  const [site, liveAds] = await Promise.all([
+    fetchSiteContext(competitor.domain),
+    fetchMetaAds({ brandName: competitor.brandName }),
+  ]);
+
+  // Fold the real ad copy into the evidence Claude reasons over.
+  const adsContext =
+    liveAds.length > 0
+      ? `\nREAL ADS CURRENTLY/RECENTLY RUNNING (from Meta Ad Library — treat as verified fact about their paid strategy):\n${liveAds
+          .map(
+            (a, i) =>
+              `${i + 1}. [${a.platforms.join("/") || "meta"}${a.startDate ? `, since ${a.startDate.slice(0, 10)}` : ""}] ${a.title ? a.title + " — " : ""}${a.body}`,
+          )
+          .join("\n")}`
+      : "";
+
+  const siteContext =
+    site.ok || adsContext
+      ? `${site.ok ? site.text : ""}${adsContext}`.trim()
+      : undefined;
 
   const input = {
     brandName: competitor.brandName,
@@ -82,7 +103,7 @@ export async function POST(req: Request) {
     industry: competitor.category || ORG.industry,
     ourBrand: ORG.name,
     ourAudience: BUSINESS_PROFILE.targetAudience,
-    siteContext: site.ok ? site.text : undefined,
+    siteContext,
   };
 
   let analysis: CompetitorAnalysis;
@@ -100,9 +121,11 @@ export async function POST(req: Request) {
     provider = "mock-fallback";
   }
 
-  // Attach the REAL signals we scraped from their live site (independent of the
-  // AI). This is verifiable fact, shown separately from AI estimates.
+  // Attach the REAL signals we gathered (independent of the AI): live-site
+  // fingerprints and real ads from the Meta Ad Library. Shown separately from
+  // AI estimates.
   analysis.discovered = site.discovered;
+  if (liveAds.length > 0) analysis.liveAds = liveAds;
 
   try {
     await saveAnalysis(competitorId, analysis);

@@ -92,6 +92,17 @@ export interface CompetitorCampaignType {
   intensity: "low" | "medium" | "high";
 }
 
+// A real ad pulled from the Meta Ad Library (not AI-generated).
+export interface CompetitorLiveAd {
+  id: string;
+  pageName: string;
+  snapshotUrl: string; // link to the ad in Meta's Ad Library
+  body: string;
+  title?: string;
+  startDate?: string;
+  platforms: string[]; // e.g. ["facebook", "instagram"]
+}
+
 export interface CompetitorAnalysis {
   brandName: string;
   summary: string;
@@ -111,6 +122,8 @@ export interface CompetitorAnalysis {
     detectedTech: string[];
     siteUrl: string;
   };
+  // REAL ads pulled from the Meta Ad Library (not AI-generated).
+  liveAds?: CompetitorLiveAd[];
 }
 
 export interface AnalyzeCompetitorInput {

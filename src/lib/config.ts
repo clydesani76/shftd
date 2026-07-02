@@ -8,6 +8,7 @@ const hasSupabase =
 
 const hasAnthropic = !!process.env.ANTHROPIC_API_KEY;
 const hasOpenAI = !!process.env.OPENAI_API_KEY;
+const hasMetaAds = !!process.env.META_ACCESS_TOKEN;
 
 export const config = {
   // Demo mode is ON when explicitly set, OR whenever Supabase isn't configured.
@@ -18,6 +19,8 @@ export const config = {
   hasAI: hasAnthropic || hasOpenAI,
   hasAnthropic,
   hasOpenAI,
+  // Meta Ad Library — pulls a competitor's real, live ads when a token is set.
+  hasMetaAds,
   hasStripe: !!process.env.STRIPE_SECRET_KEY,
   aiModel:
     process.env.SHFTD_AI_MODEL ||

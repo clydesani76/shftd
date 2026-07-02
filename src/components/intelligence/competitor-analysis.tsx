@@ -26,6 +26,7 @@ import {
   ExternalLink,
   ShieldCheck,
   Cpu,
+  Newspaper,
 } from "lucide-react";
 
 const THREAT: Record<string, { tone: "green" | "amber" | "electric"; label: string }> = {
@@ -258,6 +259,53 @@ function Report({
             )}
           </div>
         )}
+
+      {/* Real ads from the Meta Ad Library */}
+      {analysis.liveAds && analysis.liveAds.length > 0 && (
+        <div className="rounded-xl border border-teal-500/20 bg-teal-500/[0.04] p-4">
+          <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-teal-700">
+            <Newspaper className="h-4 w-4" /> Their live ads · Meta Ad Library
+            <span className="font-normal text-teal-600/70">
+              — {analysis.liveAds.length} real ads, not estimated
+            </span>
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {analysis.liveAds.map((ad) => (
+              <div
+                key={ad.id}
+                className="flex flex-col rounded-lg border border-slate-200 bg-white p-3"
+              >
+                <div className="mb-1 flex flex-wrap items-center gap-1">
+                  {ad.platforms.map((p) => (
+                    <Badge key={p}>{p}</Badge>
+                  ))}
+                  {ad.startDate && (
+                    <span className="text-xs text-slate-400">
+                      since {ad.startDate.slice(0, 10)}
+                    </span>
+                  )}
+                </div>
+                {ad.title && (
+                  <p className="text-sm font-medium text-slate-900">{ad.title}</p>
+                )}
+                <p className="mt-1 line-clamp-4 text-xs text-slate-600">
+                  {ad.body || "(no ad text)"}
+                </p>
+                {ad.snapshotUrl && (
+                  <a
+                    href={ad.snapshotUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-electric-600 hover:underline"
+                  >
+                    View ad <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Scorecard */}
       <Section icon={Gauge} title="Competitive scorecard">
