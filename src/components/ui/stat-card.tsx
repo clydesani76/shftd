@@ -28,15 +28,17 @@ export function StatCard({
     <Card className="p-5">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">
             {label}
           </p>
-          <p className="mt-2 text-2xl font-semibold text-slate-900">{value}</p>
+          <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-slate-900">
+            {value}
+          </p>
         </div>
         {Icon && (
           <div
             className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-lg",
+              "flex h-9 w-9 items-center justify-center rounded-md border border-slate-200",
               accents[accent],
             )}
           >
@@ -48,7 +50,7 @@ export function StatCard({
         {delta !== undefined && (
           <span
             className={cn(
-              "inline-flex items-center gap-0.5 font-medium",
+              "inline-flex items-center gap-0.5 font-mono font-medium tabular-nums",
               up ? "text-emerald-600" : "text-rose-600",
             )}
           >

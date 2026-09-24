@@ -41,9 +41,9 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-ink-800/40 px-6 py-12 text-center">
+    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-ink-800/40 px-6 py-12 text-center">
       {Icon && (
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-electric-600">
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-md border border-slate-200 bg-white text-electric-600">
           <Icon className="h-6 w-6" />
         </div>
       )}
@@ -67,19 +67,26 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 className="text-2xl font-semibold text-header">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
+    <div className="mb-6 border-b border-slate-200 pb-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-header">
+            {title}
+          </h1>
+          {subtitle && <p className="mt-1.5 text-sm text-slate-500">{subtitle}</p>}
+        </div>
+        {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
     </div>
   );
 }
 
 export function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+    <p className="mb-3 flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
+      <span className="text-electric-600" aria-hidden>
+        {"//"}
+      </span>
       {children}
     </p>
   );

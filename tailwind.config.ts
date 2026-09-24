@@ -10,60 +10,70 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // SHFTD brand palette — minimal, futuristic, LIGHT.
-        // (Token names kept as "ink" so existing bg-ink-* classes flip to
-        // light surfaces app-wide. 900 = page background … 500 = borders.)
+        // SHFTD — engineering-studio palette. Monochrome, high-contrast,
+        // hairline-defined. Token names kept (ink/electric/cyber/header) so
+        // existing utility classes restyle app-wide without churn.
         ink: {
           900: "#ffffff", // page background
-          800: "#f7f8fb", // subtle surface
+          800: "#fafafa", // subtle surface
           700: "#ffffff", // card
-          600: "#f1f3f8", // raised card / hover
-          500: "#e3e7ef", // border-ish
+          600: "#f4f4f5", // raised / hover
+          500: "#e4e4e7", // border-ish
         },
+        // Primary accent: a restrained cobalt used sparingly (links, active,
+        // focus). Primary ACTIONS render near-black via `electric-gradient`.
         electric: {
-          DEFAULT: "#6c5ce7",
-          50: "#f0effe",
-          100: "#e0ddfd",
-          200: "#c2bbfb",
-          300: "#a394f8",
-          400: "#866ef2",
-          500: "#6c5ce7",
-          600: "#5640d6",
-          700: "#4733b3",
-          800: "#3a2c8f",
-          900: "#312874",
+          DEFAULT: "#1d55e0",
+          50: "#eef4ff",
+          100: "#dce7fe",
+          200: "#c0d3fd",
+          300: "#93b4fb",
+          400: "#608ff6",
+          500: "#2f6bf0",
+          600: "#1d55e0",
+          700: "#1a44bd",
+          800: "#1a3b99",
+          900: "#1b3679",
         },
+        // Secondary accent: muted teal (not neon) for the "proven" path etc.
         cyber: {
-          DEFAULT: "#00e0d1", // teal accent
-          glow: "#22f5e6",
+          DEFAULT: "#0d9488",
+          glow: "#14b8a6",
         },
-        // Heading color: #6bb4e8 blended with black for a deep steel blue.
+        // Headings: near-black for high-contrast, developer-built feel.
         header: {
-          DEFAULT: "#2f5d7c",
-          light: "#6bb4e8",
+          DEFAULT: "#0f172a",
+          light: "#334155",
         },
         signal: {
-          green: "#27e6a4",
-          amber: "#ffb454",
-          red: "#ff5a7a",
+          green: "#059669",
+          amber: "#d97706",
+          red: "#e11d48",
         },
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
+      borderRadius: {
+        // Tighter, more precise corners than the default SaaS-rounded look.
+        lg: "0.5rem",
+        xl: "0.625rem",
+        "2xl": "0.75rem",
+      },
       boxShadow: {
-        glow: "0 10px 40px -12px rgba(108, 92, 231, 0.35)",
-        "glow-cyber": "0 10px 40px -12px rgba(0, 224, 209, 0.30)",
-        card: "0 1px 2px 0 rgba(16,24,40,0.04), 0 8px 24px -16px rgba(16,24,40,0.18)",
+        // Flat, border-defined surfaces — no colored glows.
+        glow: "0 1px 2px 0 rgba(15,23,42,0.06)",
+        "glow-cyber": "0 1px 2px 0 rgba(15,23,42,0.06)",
+        card: "0 1px 2px 0 rgba(15,23,42,0.05)",
       },
       backgroundImage: {
         "grid-faint":
-          "linear-gradient(rgba(16,24,40,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(16,24,40,0.04) 1px, transparent 1px)",
+          "linear-gradient(rgba(15,23,42,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.045) 1px, transparent 1px)",
+        // Primary actions: near-black with a hair of depth (no purple gradient).
         "electric-gradient":
-          "linear-gradient(135deg, #6c5ce7 0%, #00e0d1 100%)",
-        "radial-glow":
-          "radial-gradient(60% 60% at 50% 0%, rgba(108,92,231,0.10) 0%, rgba(255,255,255,0) 100%)",
+          "linear-gradient(180deg, #1e293b 0%, #0a0a0a 100%)",
+        "radial-glow": "none",
       },
       keyframes: {
         "fade-in": {
