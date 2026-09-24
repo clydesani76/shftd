@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { PageHeader, SectionLabel } from "@/components/ui/misc";
+import { PageHeader, SectionLabel, EmptyState } from "@/components/ui/misc";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,13 +9,14 @@ import { Badge, InsightBadge, PathBadge, StatusBadge } from "@/components/ui/bad
 import { TrendArea } from "@/components/charts/charts";
 import { GoldenPath } from "@/components/dashboards/golden-path";
 import { DemoData } from "@/components/dashboards/demo-data";
-import { useQuery } from "@tanstack/react-query";
+import { useSession } from "@/components/session";
 import {
-  getInsights,
-  getMetrics,
-  getRecommendations,
-} from "@/lib/data";
-import type { Campaign } from "@/types";
+  useCampaignsData,
+  useInsightsData,
+  useMetricsData,
+  useRecommendationsData,
+} from "@/lib/workspace-data";
+import { deriveDashboardTotals } from "@/lib/workspace";
 import { formatCompact, formatCurrency, timeAgo } from "@/lib/utils";
 import {
   Eye,
@@ -24,10 +25,13 @@ import {
   TrendingUp,
   ArrowRight,
   Sparkles,
+  Radar,
+  BarChart3,
+  Lightbulb,
 } from "lucide-react";
 
-// 8-week synthetic reach trend for the hero chart.
-const TREND = [
+// 8-week reach trend — illustrative, shown only in the demo workspace.
+const DEMO_TREND = [
   { label: "W1", views: 120 },
   { label: "W2", views: 180 },
   { label: "W3", views: 240 },
@@ -39,24 +43,14 @@ const TREND = [
 ];
 
 export function BusinessDashboard() {
-  // Campaigns are real (from the database); insights, recommendations and
-  // performance metrics remain illustrative until those modules are migrated.
-  const { data: campaigns = [], isFetched } = useQuery<Campaign[]>({
-    queryKey: ["campaigns"],
-    queryFn: async () => {
-      const res = await fetch("/api/campaigns");
-      const data = await res.json();
-      return data.campaigns ?? [];
-    },
-  });
-  const insights = getInsights();
-  const recs = getRecommendations();
-  const metrics = getMetrics();
+  const { isDemo, hydrated } = useSession();
+  const { data: campaigns } = useCampaignsData();
+  const { data: metrics } = useMetricsData();
+  const { data: insights } = useInsightsData();
+  const { data: recs } = useRecommendationsData();
 
-  const totalRevenue = metrics.reduce((s, m) => s + m.revenue, 0);
-  const totalViews = metrics.reduce((s, m) => s + m.views, 0);
-  const avgRoas = metrics.reduce((s, m) => s + m.roas, 0) / metrics.length;
-  const liveCount = campaigns.filter((c) => c.status === "live").length;
+  const totals = deriveDashboardTotals(campaigns, metrics);
+  const money = (v: number | null) => (v === null ? "—" : formatCurrency(v, true));
 
   return (
     <div>
@@ -72,40 +66,43 @@ export function BusinessDashboard() {
         }
       />
 
-      <GoldenPath />
+      {isDemo && <GoldenPath />}
 
-      {isFetched && <DemoData empty={campaigns.length === 0} />}
+      {/* Real workspaces may explicitly import the sample dataset when empty. */}
+      {!isDemo && hydrated && campaigns.length === 0 && (
+        <DemoData empty={true} />
+      )}
 
-      {/* Top stats */}
+      {/* Top stats — derived strictly from this workspace's own records. */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Revenue (attributed)"
-          value={formatCurrency(totalRevenue, true)}
-          delta={18}
-          hint="vs last period"
+          value={money(totals.revenue)}
+          delta={totals.hasMetrics ? 18 : undefined}
+          hint={totals.hasMetrics ? "vs last period" : "no campaign data yet"}
           icon={DollarSign}
           accent="green"
         />
         <StatCard
           label="Total reach"
-          value={formatCompact(totalViews)}
-          delta={32}
-          hint="views across campaigns"
+          value={totals.reach === null ? "—" : formatCompact(totals.reach)}
+          delta={totals.hasMetrics ? 32 : undefined}
+          hint={totals.hasMetrics ? "views across campaigns" : "no metrics yet"}
           icon={Eye}
           accent="cyber"
         />
         <StatCard
           label="Avg ROAS"
-          value={`${avgRoas.toFixed(2)}x`}
-          delta={6}
-          hint="return on ad spend"
+          value={totals.avgRoas === null ? "—" : `${totals.avgRoas.toFixed(2)}x`}
+          delta={totals.hasMetrics ? 6 : undefined}
+          hint={totals.hasMetrics ? "return on ad spend" : "needs live results"}
           icon={TrendingUp}
           accent="electric"
         />
         <StatCard
           label="Live campaigns"
-          value={String(liveCount)}
-          hint={`${campaigns.length} total`}
+          value={String(totals.liveCampaigns)}
+          hint={`${totals.totalCampaigns} total`}
           icon={Target}
           accent="amber"
         />
@@ -121,7 +118,17 @@ export function BusinessDashboard() {
             </p>
           </CardHeader>
           <CardContent>
-            <TrendArea data={TREND} dataKey="views" />
+            {isDemo ? (
+              <TrendArea data={DEMO_TREND} dataKey="views" />
+            ) : (
+              <div className="flex min-h-[220px] flex-col items-center justify-center text-center">
+                <BarChart3 className="mb-2 h-6 w-6 text-slate-500" />
+                <p className="text-sm text-slate-500">
+                  No performance data yet — reach appears once a campaign goes
+                  live and metrics are recorded.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -132,22 +139,36 @@ export function BusinessDashboard() {
             <p className="text-sm text-slate-500">AI-recommended moves</p>
           </CardHeader>
           <CardContent className="space-y-3">
-            {recs.map((r) => (
-              <Link
-                key={r.id}
-                href="/strategy"
-                className="block rounded-lg border border-slate-200 bg-ink-800/50 p-3 transition-colors hover:border-slate-200"
-              >
-                <div className="mb-1 flex items-center justify-between gap-2">
-                  <PathBadge path={r.path} />
-                  <ArrowRight className="h-3.5 w-3.5 text-slate-500" />
-                </div>
-                <p className="text-sm font-medium text-slate-900">{r.title}</p>
-                <p className="mt-1 line-clamp-2 text-xs text-slate-500">
-                  {r.concept}
+            {recs.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-6 text-center">
+                <Lightbulb className="h-5 w-5 text-slate-500" />
+                <p className="text-sm text-slate-500">
+                  No recommendations yet.
                 </p>
-              </Link>
-            ))}
+                <Link href="/strategy">
+                  <Button size="sm" variant="outline">
+                    Generate a strategy
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              recs.map((r) => (
+                <Link
+                  key={r.id}
+                  href="/strategy"
+                  className="block rounded-lg border border-slate-200 bg-ink-800/50 p-3 transition-colors hover:border-slate-300"
+                >
+                  <div className="mb-1 flex items-center justify-between gap-2">
+                    <PathBadge path={r.path} />
+                    <ArrowRight className="h-3.5 w-3.5 text-slate-500" />
+                  </div>
+                  <p className="text-sm font-medium text-slate-900">{r.title}</p>
+                  <p className="mt-1 line-clamp-2 text-xs text-slate-500">
+                    {r.concept}
+                  </p>
+                </Link>
+              ))
+            )}
           </CardContent>
         </Card>
       </div>
@@ -156,54 +177,94 @@ export function BusinessDashboard() {
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <div>
           <SectionLabel>Fresh intelligence</SectionLabel>
-          <div className="space-y-3">
-            {insights.slice(0, 3).map((i) => (
-              <Card key={i.id} hover className="p-4">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <InsightBadge category={i.category} />
-                  <span className="text-xs text-slate-500">
-                    {timeAgo(i.createdAt)}
-                  </span>
-                </div>
-                <p className="text-sm font-medium text-slate-900">{i.title}</p>
-                <p className="mt-1 line-clamp-2 text-xs text-slate-500">
-                  {i.recommendation}
-                </p>
-              </Card>
-            ))}
-          </div>
-          <Link href="/intelligence">
-            <Button variant="ghost" size="sm" className="mt-3">
-              View all intelligence <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
-          </Link>
+          {insights.length === 0 ? (
+            <EmptyState
+              icon={Radar}
+              title="No intelligence yet"
+              description="Add competitors and run analysis to surface winning patterns and white space."
+              action={
+                <Link href="/intelligence">
+                  <Button size="sm" variant="outline">
+                    Go to Intelligence
+                  </Button>
+                </Link>
+              }
+            />
+          ) : (
+            <>
+              <div className="space-y-3">
+                {insights.slice(0, 3).map((i) => (
+                  <Card key={i.id} hover className="p-4">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <InsightBadge category={i.category} />
+                      <span className="text-xs text-slate-500">
+                        {timeAgo(i.createdAt)}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium text-slate-900">{i.title}</p>
+                    <p className="mt-1 line-clamp-2 text-xs text-slate-500">
+                      {i.recommendation}
+                    </p>
+                  </Card>
+                ))}
+              </div>
+              <Link href="/intelligence">
+                <Button variant="ghost" size="sm" className="mt-3">
+                  View all intelligence <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         <div>
           <SectionLabel>Active campaigns</SectionLabel>
-          <div className="space-y-3">
-            {campaigns
-              .filter((c) => ["live", "published", "review"].includes(c.status))
-              .map((c) => (
-                <Link key={c.id} href={`/campaigns/${c.id}`}>
-                  <Card hover className="p-4">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-medium text-slate-900">{c.name}</p>
-                      <StatusBadge status={c.status} />
-                    </div>
-                    <div className="mt-2 flex items-center gap-2">
-                      <PathBadge path={c.path} />
-                      <Badge>{formatCurrency(c.budget, true)} budget</Badge>
-                    </div>
-                  </Card>
+          {campaigns.filter((c) =>
+            ["live", "published", "review"].includes(c.status),
+          ).length === 0 ? (
+            <EmptyState
+              icon={Target}
+              title="No active campaigns"
+              description="Create a campaign and publish it to the marketplace to start working with creators."
+              action={
+                <Link href="/campaigns/new">
+                  <Button size="sm" variant="outline">
+                    New campaign
+                  </Button>
                 </Link>
-              ))}
-          </div>
-          <Link href="/campaigns">
-            <Button variant="ghost" size="sm" className="mt-3">
-              All campaigns <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
-          </Link>
+              }
+            />
+          ) : (
+            <>
+              <div className="space-y-3">
+                {campaigns
+                  .filter((c) =>
+                    ["live", "published", "review"].includes(c.status),
+                  )
+                  .map((c) => (
+                    <Link key={c.id} href={`/campaigns/${c.id}`}>
+                      <Card hover className="p-4">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-medium text-slate-900">
+                            {c.name}
+                          </p>
+                          <StatusBadge status={c.status} />
+                        </div>
+                        <div className="mt-2 flex items-center gap-2">
+                          <PathBadge path={c.path} />
+                          <Badge>{formatCurrency(c.budget, true)} budget</Badge>
+                        </div>
+                      </Card>
+                    </Link>
+                  ))}
+              </div>
+              <Link href="/campaigns">
+                <Button variant="ghost" size="sm" className="mt-3">
+                  All campaigns <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>

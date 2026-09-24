@@ -1,6 +1,6 @@
 "use client";
 
-import { PageHeader, SectionLabel } from "@/components/ui/misc";
+import { PageHeader, SectionLabel, EmptyState } from "@/components/ui/misc";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,9 @@ import {
   SimpleBars,
   CHART_COLORS,
 } from "@/components/charts/charts";
-import { getCampaign, getCampaigns, getMetrics } from "@/lib/data";
+import Link from "next/link";
+import { getCampaign } from "@/lib/data";
+import { useMetricsData, useCampaignsData } from "@/lib/workspace-data";
 import { formatCompact, formatCurrency } from "@/lib/utils";
 import {
   DollarSign,
@@ -22,6 +24,7 @@ import {
   Download,
   ThumbsUp,
   ThumbsDown,
+  BarChart3,
 } from "lucide-react";
 
 // Weekly proven vs original comparison (synthetic).
@@ -33,8 +36,32 @@ const COMPARE = [
 ];
 
 export default function AnalyticsPage() {
-  const metrics = getMetrics();
-  const campaigns = getCampaigns();
+  const { data: metrics } = useMetricsData();
+  const { data: campaigns } = useCampaignsData();
+
+  // Honest empty state: with no recorded metrics we show nothing to measure —
+  // never sample revenue/ROAS. (A real workspace has no metrics until a
+  // campaign runs and results are recorded.)
+  if (metrics.length === 0) {
+    return (
+      <div>
+        <PageHeader
+          title="Analytics & ROI"
+          subtitle="Did it work? Proven vs Original, head to head."
+        />
+        <EmptyState
+          icon={BarChart3}
+          title="No analytics yet"
+          description="ROAS and revenue are calculated from documented, attributed results and defined campaign costs. Once a campaign runs and its metrics are recorded, they appear here — no sample figures are shown."
+          action={
+            <Link href="/campaigns">
+              <Button variant="outline">Go to campaigns</Button>
+            </Link>
+          }
+        />
+      </div>
+    );
+  }
 
   const totalRevenue = metrics.reduce((s, m) => s + m.revenue, 0);
   const totalViews = metrics.reduce((s, m) => s + m.views, 0);

@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { PageHeader, SectionLabel } from "@/components/ui/misc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/misc";
 import { getCreators } from "@/lib/data";
+import { useCreatorsData, useCampaignsData } from "@/lib/workspace-data";
 import { useSession } from "@/components/session";
 import { cn, formatCurrency, titleCase } from "@/lib/utils";
 import type { Campaign, CreatorRole } from "@/types";
@@ -23,17 +23,11 @@ const ROLES: CreatorRole[] = ["igniter", "amplifier", "closer"];
 
 export default function MarketplacePage() {
   const { role } = useSession();
-  const creators = getCreators();
+  const { data: creators } = useCreatorsData();
+  const { data: campaigns } = useCampaignsData();
   const isCreator = role === "creator";
 
-  // Open campaigns are real campaigns that have been published or gone live.
-  const { data: campaigns = [] } = useQuery<Campaign[]>({
-    queryKey: ["campaigns"],
-    queryFn: async () => {
-      const res = await fetch("/api/campaigns");
-      return (await res.json()).campaigns ?? [];
-    },
-  });
+  // Open campaigns are this workspace's campaigns that are published or live.
   const openCampaigns = campaigns.filter(
     (c) => c.status === "published" || c.status === "live",
   );

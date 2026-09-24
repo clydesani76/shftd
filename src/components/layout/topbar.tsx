@@ -1,29 +1,31 @@
 "use client";
 
 import { useSession } from "@/components/session";
-import { getOrg, isDemo } from "@/lib/data";
-import { Badge } from "@/components/ui/badge";
+import { getOrg } from "@/lib/data";
 import { cn, titleCase } from "@/lib/utils";
-import { Search, Sparkles } from "lucide-react";
+import { Search, FlaskConical } from "lucide-react";
 import type { UserRole } from "@/types";
 
 const ROLES: UserRole[] = ["business", "creator", "admin"];
 
 export function Topbar() {
-  const { user, role, setRole } = useSession();
+  const { user, role, setRole, workspace, setWorkspace, isDemo } = useSession();
   const org = getOrg();
+
+  const orgName = isDemo ? org.name : "My workspace";
+  const orgSub = isDemo ? org.industry : "Real workspace";
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-slate-200 bg-ink-700/90 px-4 backdrop-blur-sm sm:px-6">
       {/* Org context */}
       <div className="hidden items-center gap-2 md:flex">
         <div className="flex h-8 w-8 items-center justify-center rounded-md bg-electric-500 text-sm font-bold text-[#141310]">
-          {org.name.charAt(0)}
+          {orgName.charAt(0)}
         </div>
         <div className="leading-tight">
-          <p className="text-sm font-medium text-slate-900">{org.name}</p>
+          <p className="text-sm font-medium text-slate-900">{orgName}</p>
           <p className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
-            {org.industry}
+            {orgSub}
           </p>
         </div>
       </div>
@@ -37,11 +39,33 @@ export function Topbar() {
         />
       </div>
 
-      {isDemo && (
-        <Badge tone="amber" className="hidden sm:inline-flex">
-          <Sparkles className="h-3 w-3" /> Demo data
-        </Badge>
-      )}
+      {/* Workspace switcher — demo vs. the user's real workspace. */}
+      <div className="hidden items-center gap-0.5 rounded-md border border-slate-200 bg-ink-700 p-0.5 sm:flex">
+        <button
+          onClick={() => setWorkspace("demo")}
+          className={cn(
+            "inline-flex items-center gap-1 rounded px-2 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors",
+            workspace === "demo"
+              ? "bg-signal-amber/20 text-amber-300"
+              : "text-slate-500 hover:text-slate-900",
+          )}
+          title="Explore the Nova sample workspace"
+        >
+          <FlaskConical className="h-3 w-3" /> Demo
+        </button>
+        <button
+          onClick={() => setWorkspace("real")}
+          className={cn(
+            "rounded px-2 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors",
+            workspace === "real"
+              ? "bg-electric-500 text-[#141310]"
+              : "text-slate-500 hover:text-slate-900",
+          )}
+          title="Your own workspace"
+        >
+          Real
+        </button>
+      </div>
 
       {/* Role switcher (demo only) */}
       <div className="flex items-center gap-0.5 rounded-md border border-slate-200 bg-ink-700 p-0.5">

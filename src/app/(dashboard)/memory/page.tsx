@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageHeader, SectionLabel } from "@/components/ui/misc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCampaign } from "@/lib/data";
+import { useMemoryData } from "@/lib/workspace-data";
 import { cn, timeAgo } from "@/lib/utils";
 import type { BrandMemoryNote, MemoryKind } from "@/types";
 import {
@@ -35,15 +36,9 @@ export default function MemoryPage() {
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
 
-  // Brand learnings come from the database (via /api/memory).
-  const { data: memory = [] } = useQuery<BrandMemoryNote[]>({
-    queryKey: ["memory"],
-    queryFn: async () => {
-      const res = await fetch("/api/memory");
-      const data = await res.json();
-      return data.notes ?? [];
-    },
-  });
+  // Brand learnings: demo shows the Nova sample set; a real workspace shows
+  // only learnings tied to its own campaigns (from /api/memory).
+  const { data: memory, isDemo } = useMemoryData();
 
   const addMutation = useMutation({
     mutationFn: async (note: NewLearning) => {
@@ -75,13 +70,15 @@ export default function MemoryPage() {
         title="Marketing Memory"
         subtitle="SHFTD's long-term advantage — every win and loss makes the next recommendation smarter."
         actions={
-          <Button variant="outline" onClick={() => setShowAdd((s) => !s)}>
-            <Plus className="h-4 w-4" /> Add learning
-          </Button>
+          isDemo ? undefined : (
+            <Button variant="outline" onClick={() => setShowAdd((s) => !s)}>
+              <Plus className="h-4 w-4" /> Add learning
+            </Button>
+          )
         }
       />
 
-      {showAdd && (
+      {!isDemo && showAdd && (
         <AddLearningForm
           onAdd={(n) => addMutation.mutate(n)}
           onCancel={() => setShowAdd(false)}

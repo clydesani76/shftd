@@ -2,6 +2,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { InvestorTour } from "@/components/dashboards/investor-tour";
+import { WorkspaceBanner } from "@/components/layout/workspace-banner";
 
 export default function DashboardLayout({
   children,
@@ -13,6 +14,7 @@ export default function DashboardLayout({
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
+        <WorkspaceBanner />
         <MobileNav />
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl animate-fade-in">{children}</div>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
+import { WorkspaceCTA } from "@/components/marketing/workspace-cta";
 import {
   Radar,
   BrainCircuit,
@@ -92,21 +93,12 @@ export default function LandingPage() {
             executes them with creators, tracks the results, and learns from
             every campaign — so you grow faster than your competitors.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link href="/dashboard">
-              <Button size="lg">
-                Launch the demo <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button size="lg" variant="outline">
-                Create account
-              </Button>
-            </Link>
+          <div className="mt-8">
+            <WorkspaceCTA />
           </div>
           <p className="mt-6 font-mono text-xs text-slate-500">
-            <span className="text-emerald-600">●</span> no setup required —
-            explore with realistic demo data
+            <span className="text-emerald-600">●</span> your workspace starts
+            empty · the demo is a clearly labeled, isolated sample
           </p>
         </div>
       </section>
@@ -267,17 +259,8 @@ export default function LandingPage() {
             Explore the full system with realistic demo data — no signup, no
             setup. See what to run next in under a minute.
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/dashboard">
-              <Button size="lg">
-                Launch the demo <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button size="lg" variant="outline">
-                Create account
-              </Button>
-            </Link>
+          <div className="mt-8 flex justify-center">
+            <WorkspaceCTA />
           </div>
         </div>
       </section>

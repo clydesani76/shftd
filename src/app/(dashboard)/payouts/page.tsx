@@ -6,12 +6,8 @@ import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  getCampaign,
-  getCampaigns,
-  getCreator,
-  getLedger,
-} from "@/lib/data";
+import { getCampaign, getCreator } from "@/lib/data";
+import { useLedgerData, useCampaignsData } from "@/lib/workspace-data";
 import { config } from "@/lib/config";
 import { useSession } from "@/components/session";
 import { cn, formatCurrency, titleCase } from "@/lib/utils";
@@ -26,8 +22,8 @@ const ledgerTone: Record<LedgerStatus, Parameters<typeof Badge>[0]["tone"]> = {
 
 export default function PayoutsPage() {
   const { role } = useSession();
-  const ledger = getLedger();
-  const campaigns = getCampaigns();
+  const { data: ledger } = useLedgerData();
+  const { data: campaigns } = useCampaignsData();
   const [connected, setConnected] = useState(false);
 
   const isAdmin = role === "admin";
@@ -131,6 +127,18 @@ export default function PayoutsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
+                {ledger.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="px-4 py-10 text-center text-sm text-slate-500"
+                    >
+                      No payout activity yet. Payout obligations are created when
+                      you approve a creator&apos;s deliverable — and stay pending
+                      until a payment is genuinely verified.
+                    </td>
+                  </tr>
+                )}
                 {ledger.map((l) => (
                   <tr key={l.id} className="hover:bg-slate-50">
                     <td className="px-4 py-3 text-slate-900">{getCreator(l.creatorId)?.name}</td>
