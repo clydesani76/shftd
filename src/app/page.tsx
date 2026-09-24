@@ -45,7 +45,9 @@ export default function LandingPage() {
       {/* Nav */}
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-ink-900/85 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Logo />
+          <Link href="/" aria-label="SHFTD home">
+            <Logo />
+          </Link>
           <nav className="hidden items-center gap-7 md:flex">
             {[
               ["System", "#system"],

@@ -8,7 +8,9 @@ export default function SignupPage() {
       <div className="pointer-events-none absolute inset-0 bg-radial-glow" />
       <div className="relative z-10 w-full max-w-md">
         <div className="mb-8 flex justify-center">
-          <Logo showTagline />
+          <Link href="/" aria-label="SHFTD home">
+            <Logo showTagline />
+          </Link>
         </div>
         <AuthForm mode="signup" />
         <p className="mt-6 text-center text-sm text-slate-500">
