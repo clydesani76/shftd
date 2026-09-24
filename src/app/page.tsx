@@ -79,11 +79,12 @@ export default function LandingPage() {
         <div className="blueprint pointer-events-none absolute inset-0 opacity-70" />
         <div className="relative mx-auto max-w-5xl px-6 py-20 sm:py-28">
           <Eyebrow>The Marketing Operating System</Eyebrow>
-          <h1 className="mt-5 max-w-3xl text-balance text-4xl font-semibold leading-[1.05] tracking-tight text-header sm:text-6xl">
-            Stop chasing trends.
-            <br />
-            Start setting them.
-          </h1>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/wordmark.png"
+            alt="SHFTD"
+            className="mt-5 h-16 w-auto select-none sm:h-28"
+          />
           <p className="mt-6 max-w-2xl text-pretty text-lg text-slate-600">
             SHFTD decides what marketing to do next, creates the campaigns,
             executes them with creators, tracks the results, and learns from
