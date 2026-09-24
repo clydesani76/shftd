@@ -14,26 +14,26 @@ const config: Config = {
         // warm cream (#eddeb7) headings/accent. Token names kept so existing
         // utility classes restyle app-wide.
         ink: {
-          900: "#0a0a0a", // page background (black)
-          800: "#111113", // subtle surface
-          700: "#161618", // card
-          600: "#1f1f23", // raised / hover
-          500: "#2b2b31", // border-ish
+          900: "#08080a", // page background (deeper black)
+          800: "#101013", // subtle surface
+          700: "#17171b", // card (lifted off the page)
+          600: "#212128", // raised / hover
+          500: "#34343d", // border-ish
         },
         // Neutral ramp REMAPPED to a dark-theme (inverted) scale so every
         // existing slate utility flips correctly: text-slate-900 = light text,
         // border-slate-200 = dark hairline, bg-slate-50 = lifted dark surface.
         slate: {
-          50: "#1a1a1c",
-          100: "#242428",
-          200: "#2b2b31",
-          300: "#3a3a42",
-          400: "#71717a",
-          500: "#a1a1aa",
-          600: "#c4c4cc",
-          700: "#d8d8de",
-          800: "#ececef",
-          900: "#f5f5f6",
+          50: "#1f1f24", // lifted nested surface (sits above cards)
+          100: "#26262c",
+          200: "#33333c", // main hairline border — brighter for separation
+          300: "#44444e",
+          400: "#78787f",
+          500: "#a6a6ad",
+          600: "#c7c7ce",
+          700: "#dadade",
+          800: "#ededf0",
+          900: "#f6f6f7",
           950: "#ffffff",
         },
         // Secondary accent + heading color: warm cream. Used for headings (via
@@ -79,10 +79,10 @@ const config: Config = {
         "2xl": "0.75rem",
       },
       boxShadow: {
-        // Flat, border-defined surfaces — no colored glows.
-        glow: "0 1px 2px 0 rgba(0,0,0,0.4)",
-        "glow-cyber": "0 1px 2px 0 rgba(0,0,0,0.4)",
-        card: "0 1px 2px 0 rgba(0,0,0,0.35)",
+        // Subtle lift for depth against the deep-black page.
+        glow: "0 1px 3px 0 rgba(0,0,0,0.5)",
+        "glow-cyber": "0 1px 3px 0 rgba(0,0,0,0.5)",
+        card: "0 1px 3px 0 rgba(0,0,0,0.5), 0 1px 0 0 rgba(255,255,255,0.02) inset",
       },
       backgroundImage: {
         "grid-faint":
