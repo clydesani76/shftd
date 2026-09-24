@@ -19,28 +19,29 @@ export function Logo({
   const [useFallback, setUseFallback] = useState(false);
 
   return (
-    <div className={cn("flex items-center gap-2.5", className)}>
+    <div className={cn("flex flex-col", className)}>
       {useFallback ? (
-        <LogoMark className="h-8 w-8" />
+        // Fallback if the wordmark asset is missing: silver mark + text.
+        <div className="flex items-center gap-2.5">
+          <LogoMark className="h-7 w-7" />
+          <span className="text-lg font-bold tracking-tight text-slate-900">
+            SHFTD
+          </span>
+        </div>
       ) : (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src="/logo.png"
+          src="/wordmark.png"
           alt="SHFTD"
-          className="h-8 w-8 object-contain"
+          className="h-[29px] w-auto select-none sm:h-[34px]"
           onError={() => setUseFallback(true)}
         />
       )}
-      <div className="leading-none">
-        <span className="text-lg font-bold tracking-tight text-slate-900">
-          SHFTD
+      {showTagline && (
+        <span className="mt-1.5 block font-mono text-[10px] uppercase tracking-widest text-slate-500">
+          Marketing OS
         </span>
-        {showTagline && (
-          <span className="block text-[10px] uppercase tracking-widest text-slate-500">
-            Marketing OS
-          </span>
-        )}
-      </div>
+      )}
     </div>
   );
 }
