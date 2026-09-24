@@ -120,7 +120,7 @@ export default function CopyStudioPage() {
       />
 
       {/* Copy / Images mode toggle */}
-      <div className="mb-6 inline-flex gap-1 rounded-lg border border-slate-200 bg-white p-0.5">
+      <div className="mb-6 inline-flex gap-1 rounded-lg border border-slate-200 bg-ink-700 p-0.5">
         <button
           onClick={() => setMode("copy")}
           className={cn(
@@ -231,7 +231,7 @@ export default function CopyStudioPage() {
         <div className="lg:col-span-2">
           {variants.length === 0 ? (
             <Card className="flex h-full min-h-[300px] flex-col items-center justify-center p-12 text-center">
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-md border border-slate-200 bg-white text-electric-600">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-md border border-slate-200 bg-ink-700 text-electric-600">
                 <PenLine className="h-6 w-6" />
               </div>
               <p className="font-medium text-slate-900">Your variants will appear here</p>
@@ -380,7 +380,7 @@ function ImagePanel({ campaigns }: { campaigns: Campaign[] }) {
               onChange={(e) => setPrompt(e.target.value)}
               rows={4}
               placeholder="e.g. A bright, modern dental office with a smiling patient, soft daylight, clean minimalist style, room for text on the left"
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 ring-focus"
+              className="w-full rounded-lg border border-slate-200 bg-ink-700 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 ring-focus"
             />
           </div>
           <div>
@@ -412,7 +412,7 @@ function ImagePanel({ campaigns }: { campaigns: Campaign[] }) {
             <select
               value={campaignId}
               onChange={(e) => setCampaignId(e.target.value)}
-              className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 ring-focus"
+              className="h-10 w-full rounded-lg border border-slate-200 bg-ink-700 px-3 text-sm text-slate-900 ring-focus"
             >
               <option value="">None</option>
               {campaigns.map((c) => (
@@ -439,7 +439,7 @@ function ImagePanel({ campaigns }: { campaigns: Campaign[] }) {
       <div className="lg:col-span-2">
         {images.length === 0 ? (
           <Card className="flex h-full min-h-[300px] flex-col items-center justify-center p-12 text-center">
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-md border border-slate-200 bg-white text-electric-600">
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-md border border-slate-200 bg-ink-700 text-electric-600">
               <ImageIcon className="h-6 w-6" />
             </div>
             <p className="font-medium text-slate-900">

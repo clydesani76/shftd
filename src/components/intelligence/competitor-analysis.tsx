@@ -234,7 +234,7 @@ function Report({
                       href={s.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 transition-colors hover:border-electric-400 hover:text-electric-700"
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-ink-700 px-2.5 py-1 text-xs font-medium text-slate-700 transition-colors hover:border-electric-400 hover:text-electric-700"
                     >
                       {s.platform}
                       <ExternalLink className="h-3 w-3" />
@@ -273,7 +273,7 @@ function Report({
             {analysis.liveAds.map((ad) => (
               <div
                 key={ad.id}
-                className="flex flex-col rounded-lg border border-slate-200 bg-white p-3"
+                className="flex flex-col rounded-lg border border-slate-200 bg-ink-700 p-3"
               >
                 <div className="mb-1 flex flex-wrap items-center gap-1">
                   {ad.platforms.map((p) => (

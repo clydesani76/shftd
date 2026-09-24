@@ -52,7 +52,7 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-slate-200 p-4">
-        <div className="rounded-md border border-slate-200 bg-white p-3">
+        <div className="rounded-md border border-slate-200 bg-ink-700 p-3">
           <p className="font-mono text-[10px] font-medium uppercase tracking-wider text-electric-700">
             {role === "creator" ? "Creator workspace" : "Marketing OS"}
           </p>

@@ -18,20 +18,20 @@ import {
   YAxis,
 } from "recharts";
 
-const AXIS = { stroke: "#94a3b8", fontSize: 11 };
-const GRID = "#e5e8ef";
+const AXIS = { stroke: "#71717a", fontSize: 11 };
+const GRID = "#2b2b31";
 const TOOLTIP_STYLE = {
-  background: "#ffffff",
-  border: "1px solid #e5e8ef",
+  background: "#161618",
+  border: "1px solid #2b2b31",
   borderRadius: 8,
   fontSize: 12,
-  color: "#0f172a",
-  boxShadow: "0 8px 24px -16px rgba(16,24,40,0.18)",
+  color: "#f5f5f6",
+  boxShadow: "0 8px 24px -12px rgba(0,0,0,0.6)",
 };
 
-const ELECTRIC = "#6c5ce7";
-const CYBER = "#00e0d1";
-export const CHART_COLORS = [ELECTRIC, CYBER, "#27e6a4", "#ffb454", "#ff5a7a"];
+const ELECTRIC = "#eddeb7";
+const CYBER = "#cbd5e1";
+export const CHART_COLORS = [ELECTRIC, CYBER, "#a1a1aa", "#f0e6c8", "#8a8f99"];
 
 export function TrendArea({
   data,

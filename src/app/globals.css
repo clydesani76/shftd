@@ -12,7 +12,7 @@
     @apply antialiased;
   }
   body {
-    @apply bg-ink-900 text-slate-600 selection:bg-electric-500/15;
+    @apply bg-ink-900 text-slate-500 selection:bg-electric-500/20 selection:text-black;
   }
   h1, h2, h3, h4 {
     @apply tracking-tight text-header;
@@ -32,17 +32,17 @@
 
 @layer components {
   .card {
-    @apply rounded-lg border border-slate-200 bg-white shadow-card;
+    @apply rounded-lg border border-slate-200 bg-ink-700 shadow-card;
   }
   .card-hover {
     @apply transition-colors duration-150 hover:border-slate-300;
   }
-  /* Solid, high-contrast — no gradient text (reads developer-built). */
+  /* Cream heading treatment. */
   .gradient-text {
     @apply text-header;
   }
   .ring-focus {
-    @apply focus:outline-none focus:ring-2 focus:ring-electric-500/40 focus:ring-offset-2 focus:ring-offset-white;
+    @apply focus:outline-none focus:ring-2 focus:ring-electric-500/40 focus:ring-offset-2 focus:ring-offset-ink-900;
   }
   .bg-grid {
     background-image: none;
@@ -54,8 +54,8 @@
   /* Blueprint grid backdrop (used sparingly, e.g. landing hero). */
   .blueprint {
     background-image: var(--tw-gradient, none),
-      linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
     background-size: 100% 100%, 40px 40px, 40px 40px;
   }
   /* Hairline divider with a technical tick. */

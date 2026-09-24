@@ -517,7 +517,7 @@ function Metric({
 
 function Avatar({ name }: { name: string }) {
   return (
-    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-900 font-mono text-xs font-bold text-white">
+    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-electric-500 font-mono text-xs font-bold text-[#141310]">
       {name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
     </div>
   );

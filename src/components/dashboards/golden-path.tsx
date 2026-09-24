@@ -82,12 +82,12 @@ export function GoldenPath() {
             key={s.n}
             href={s.href}
             className={cn(
-              "group flex flex-col rounded-md border border-slate-200 bg-white p-4 transition-colors",
+              "group flex flex-col rounded-md border border-slate-200 bg-ink-700 p-4 transition-colors",
               "hover:border-slate-400",
             )}
           >
             <div className="mb-3 flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded bg-slate-900 font-mono text-xs font-medium text-white">
+              <span className="flex h-6 w-6 items-center justify-center rounded bg-electric-500 font-mono text-xs font-medium text-[#141310]">
                 {s.n}
               </span>
               <s.icon className="h-4 w-4 text-electric-600" />

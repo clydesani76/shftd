@@ -14,10 +14,10 @@ export function Topbar() {
   const org = getOrg();
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-slate-200 bg-white/90 px-4 backdrop-blur-sm sm:px-6">
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-slate-200 bg-ink-700/90 px-4 backdrop-blur-sm sm:px-6">
       {/* Org context */}
       <div className="hidden items-center gap-2 md:flex">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-slate-900 text-sm font-bold text-white">
+        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-electric-500 text-sm font-bold text-[#141310]">
           {org.name.charAt(0)}
         </div>
         <div className="leading-tight">
@@ -33,7 +33,7 @@ export function Topbar() {
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <input
           placeholder="Search campaigns, creators, insights…"
-          className="h-9 w-full rounded-md border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 ring-focus"
+          className="h-9 w-full rounded-md border border-slate-200 bg-ink-700 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 ring-focus"
         />
       </div>
 
@@ -44,7 +44,7 @@ export function Topbar() {
       )}
 
       {/* Role switcher (demo only) */}
-      <div className="flex items-center gap-0.5 rounded-md border border-slate-200 bg-white p-0.5">
+      <div className="flex items-center gap-0.5 rounded-md border border-slate-200 bg-ink-700 p-0.5">
         {ROLES.map((r) => (
           <button
             key={r}
@@ -52,7 +52,7 @@ export function Topbar() {
             className={cn(
               "rounded px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors",
               role === r
-                ? "bg-slate-900 text-white"
+                ? "bg-electric-500 text-[#141310]"
                 : "text-slate-500 hover:text-slate-900",
             )}
           >
@@ -63,7 +63,7 @@ export function Topbar() {
 
       {/* Avatar */}
       <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-electric-gradient text-xs font-bold text-white">
+        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-electric-gradient text-xs font-bold text-[#141310]">
           {user.fullName
             .split(" ")
             .map((n) => n[0])

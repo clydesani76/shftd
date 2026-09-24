@@ -86,7 +86,7 @@ export default function MarketplacePage() {
               <Card key={c.id} className="p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-md bg-slate-900 font-mono text-sm font-bold text-white">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-md bg-electric-500 font-mono text-sm font-bold text-[#141310]">
                       {c.name.split(" ").map((n) => n[0]).join("")}
                     </div>
                     <div>

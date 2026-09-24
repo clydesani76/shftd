@@ -19,9 +19,9 @@ export function StatCard({
 }) {
   const accents: Record<string, string> = {
     electric: "text-electric-600 bg-electric-500/10",
-    cyber: "text-teal-600 bg-cyber/10",
-    green: "text-emerald-600 bg-signal-green/10",
-    amber: "text-amber-600 bg-signal-amber/10",
+    cyber: "text-cyber bg-cyber/10",
+    green: "text-emerald-400 bg-signal-green/10",
+    amber: "text-amber-400 bg-signal-amber/10",
   };
   const up = (delta ?? 0) >= 0;
   return (

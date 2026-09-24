@@ -93,8 +93,8 @@ export function InvestorTour() {
         onClick={start}
         className={cn(
           "fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-md",
-          "bg-slate-900 px-4 py-2.5 font-mono text-xs font-medium uppercase tracking-wider text-white shadow-sm",
-          "transition-colors hover:bg-slate-800",
+          "bg-electric-500 px-4 py-2.5 font-mono text-xs font-medium uppercase tracking-wider text-[#141310] shadow-sm",
+          "transition-opacity hover:opacity-90",
         )}
       >
         <Presentation className="h-4 w-4" /> Investor tour
@@ -102,15 +102,15 @@ export function InvestorTour() {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
           onClick={() => setOpen(false)}
         >
           <div
-            className="animate-fade-in w-full max-w-lg rounded-lg border border-slate-200 bg-white p-6 shadow-lg"
+            className="animate-fade-in w-full max-w-lg rounded-lg border border-slate-200 bg-ink-700 p-6 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-start justify-between">
-              <div className="flex h-11 w-11 items-center justify-center rounded-md border border-slate-200 bg-white text-electric-600">
+              <div className="flex h-11 w-11 items-center justify-center rounded-md border border-slate-200 bg-ink-700 text-electric-600">
                 <Icon className="h-6 w-6" />
               </div>
               <button

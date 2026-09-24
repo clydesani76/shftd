@@ -123,7 +123,7 @@ export default function MemoryPage() {
                 <div key={m.id} className="relative">
                   <span
                     className={cn(
-                      "absolute -left-[31px] flex h-6 w-6 items-center justify-center rounded-md border bg-white",
+                      "absolute -left-[31px] flex h-6 w-6 items-center justify-center rounded-md border bg-ink-700",
                       m.outcome === "win"
                         ? "border-signal-green/40 text-emerald-600"
                         : m.outcome === "loss"

@@ -41,9 +41,9 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-ink-900">
       {/* Nav */}
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur-sm">
+      <header className="sticky top-0 z-20 border-b border-slate-200 bg-ink-900/85 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Logo />
           <nav className="hidden items-center gap-7 md:flex">
@@ -141,10 +141,10 @@ export default function LandingPage() {
               {LAYERS.map((l, i) => (
                 <div
                   key={l.title}
-                  className="group bg-white p-6 transition-colors hover:bg-slate-50"
+                  className="group bg-ink-700 p-6 transition-colors hover:bg-slate-50"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-white text-electric-600">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-ink-700 text-electric-600">
                       <l.icon className="h-5 w-5" />
                     </div>
                     <span className="font-mono text-xs text-slate-300">
@@ -165,7 +165,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-5xl px-6 py-16">
           <Eyebrow>Every recommendation, two ways</Eyebrow>
           <div className="mt-8 grid gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 sm:grid-cols-2">
-            <div className="bg-white p-6">
+            <div className="bg-ink-700 p-6">
               <p className="font-mono text-[11px] font-medium uppercase tracking-wider text-teal-700">
                 [ Safe &amp; Proven ]
               </p>
@@ -177,7 +177,7 @@ export default function LandingPage() {
                 successfully — proven hooks, CTAs, offers, and formats.
               </p>
             </div>
-            <div className="bg-white p-6">
+            <div className="bg-ink-700 p-6">
               <p className="font-mono text-[11px] font-medium uppercase tracking-wider text-electric-700">
                 [ Bold &amp; Original ]
               </p>
@@ -208,7 +208,7 @@ export default function LandingPage() {
           </p>
 
           <div className="mt-8 grid gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 sm:grid-cols-2">
-            <div className="bg-white p-6">
+            <div className="bg-ink-700 p-6">
               <p className="font-mono text-[11px] font-medium uppercase tracking-wider text-slate-400">
                 Marketplaces &amp; payout tools
               </p>
@@ -222,7 +222,7 @@ export default function LandingPage() {
                 <li>— No view of what to actually run</li>
               </ul>
             </div>
-            <div className="bg-white p-6 ring-1 ring-inset ring-electric-500/30">
+            <div className="bg-ink-700 p-6 ring-1 ring-inset ring-electric-500/30">
               <p className="font-mono text-[11px] font-medium uppercase tracking-wider text-electric-700">
                 SHFTD
               </p>
@@ -247,31 +247,27 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Closing CTA — inverted terminal block */}
-      <section className="border-b border-slate-200 bg-slate-950">
+      {/* Closing CTA — terminal block */}
+      <section className="border-y border-slate-200 bg-ink-800">
         <div className="mx-auto max-w-5xl px-6 py-20 text-center">
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-slate-400">
-            <span className="text-emerald-400">$</span> shftd --launch
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-slate-500">
+            <span className="text-electric-600">$</span> shftd --launch
           </p>
-          <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+          <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-header sm:text-4xl">
             Ready to set the trend?
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-pretty text-slate-300">
+          <p className="mx-auto mt-3 max-w-xl text-pretty text-slate-500">
             Explore the full system with realistic demo data — no signup, no
             setup. See what to run next in under a minute.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href="/dashboard">
-              <Button size="lg" variant="secondary">
+              <Button size="lg">
                 Launch the demo <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
             <Link href="/signup">
-              <Button
-                size="lg"
-                variant="ghost"
-                className="text-slate-200 hover:bg-white/10 hover:text-white"
-              >
+              <Button size="lg" variant="outline">
                 Create account
               </Button>
             </Link>
