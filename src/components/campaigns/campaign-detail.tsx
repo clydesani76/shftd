@@ -204,13 +204,13 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
             key={t}
             onClick={() => setTab(t)}
             className={cn(
-              "relative px-4 py-2 text-sm font-medium transition-colors",
+              "relative px-4 py-2 font-mono text-xs uppercase tracking-wider transition-colors",
               tab === t ? "text-slate-900" : "text-slate-500 hover:text-slate-900",
             )}
           >
             {t}
             {tab === t && (
-              <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-electric-gradient" />
+              <span className="absolute inset-x-2 -bottom-px h-0.5 bg-electric-600" />
             )}
           </button>
         ))}
@@ -229,7 +229,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                 <Field label="Offer" value={campaign.offer} />
                 <Field label="Creator instructions" value={campaign.creatorInstructions} />
                 <div>
-                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+                  <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
                     Deliverables
                   </p>
                   <div className="flex flex-wrap gap-1">
@@ -239,7 +239,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                   </div>
                 </div>
                 <div>
-                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+                  <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
                     KPIs
                   </p>
                   <div className="flex flex-wrap gap-1">
@@ -488,7 +488,7 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-500">
+      <p className="mb-1 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
         {label}
       </p>
       <p className="text-sm text-slate-600">{value}</p>
@@ -507,8 +507,8 @@ function Metric({
 }) {
   return (
     <Card className="p-4">
-      <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
-      <p className={cn("mt-1 text-xl font-semibold", accent ? "text-teal-600" : "text-slate-900")}>
+      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">{label}</p>
+      <p className={cn("mt-1 text-xl font-semibold tabular-nums", accent ? "text-teal-600" : "text-slate-900")}>
         {value}
       </p>
     </Card>
@@ -517,7 +517,7 @@ function Metric({
 
 function Avatar({ name }: { name: string }) {
   return (
-    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-electric-gradient text-xs font-bold text-white">
+    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-900 font-mono text-xs font-bold text-white">
       {name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
     </div>
   );

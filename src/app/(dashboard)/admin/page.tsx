@@ -61,13 +61,13 @@ export default function AdminPage() {
             key={t}
             onClick={() => setTab(t)}
             className={cn(
-              "relative px-4 py-2 text-sm font-medium transition-colors",
+              "relative px-4 py-2 font-mono text-xs uppercase tracking-wider transition-colors",
               tab === t ? "text-slate-900" : "text-slate-500 hover:text-slate-900",
             )}
           >
             {t}
             {tab === t && (
-              <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-electric-gradient" />
+              <span className="absolute inset-x-2 -bottom-px h-0.5 bg-electric-600" />
             )}
           </button>
         ))}
@@ -100,7 +100,7 @@ function Table({
     <Card>
       <CardContent className="overflow-x-auto p-0">
         <table className="w-full text-sm">
-          <thead className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
+          <thead className="border-b border-slate-200 text-left font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
             <tr>
               {head.map((h) => (
                 <th key={h} className="px-4 py-3 font-medium">

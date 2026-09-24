@@ -115,9 +115,9 @@ export function CampaignWizard() {
             <button
               onClick={() => setStep(i)}
               className={cn(
-                "flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+                "flex items-center gap-2 rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-colors",
                 i === step
-                  ? "bg-electric-500/15 text-slate-900"
+                  ? "bg-slate-100 text-slate-900"
                   : i < step
                     ? "text-teal-600"
                     : "text-slate-500",
@@ -125,11 +125,11 @@ export function CampaignWizard() {
             >
               <span
                 className={cn(
-                  "flex h-5 w-5 items-center justify-center rounded-full border text-[10px]",
+                  "flex h-5 w-5 items-center justify-center rounded border text-[10px]",
                   i < step
                     ? "border-cyber bg-cyber/20 text-teal-600"
                     : i === step
-                      ? "border-electric-400 text-slate-900"
+                      ? "border-slate-900 text-slate-900"
                       : "border-slate-300",
                 )}
               >

@@ -58,7 +58,7 @@ export function GoldenPath() {
   }
 
   return (
-    <Card className="relative mb-6 overflow-hidden border-electric-500/30 bg-electric-500/[0.04] p-5 shadow-glow">
+    <Card className="relative mb-6 overflow-hidden border-slate-300 bg-slate-50 p-5">
       <button
         onClick={dismiss}
         aria-label="Dismiss guide"
@@ -82,12 +82,12 @@ export function GoldenPath() {
             key={s.n}
             href={s.href}
             className={cn(
-              "group flex flex-col rounded-xl border border-slate-200 bg-white p-4 transition-all",
-              "hover:border-electric-400 hover:shadow-md",
+              "group flex flex-col rounded-md border border-slate-200 bg-white p-4 transition-colors",
+              "hover:border-slate-400",
             )}
           >
             <div className="mb-3 flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-electric-500/15 text-xs font-bold text-electric-700">
+              <span className="flex h-6 w-6 items-center justify-center rounded bg-slate-900 font-mono text-xs font-medium text-white">
                 {s.n}
               </span>
               <s.icon className="h-4 w-4 text-electric-600" />

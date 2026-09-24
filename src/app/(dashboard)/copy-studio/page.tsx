@@ -231,7 +231,7 @@ export default function CopyStudioPage() {
         <div className="lg:col-span-2">
           {variants.length === 0 ? (
             <Card className="flex h-full min-h-[300px] flex-col items-center justify-center p-12 text-center">
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-electric-500/10 text-electric-600">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-md border border-slate-200 bg-white text-electric-600">
                 <PenLine className="h-6 w-6" />
               </div>
               <p className="font-medium text-slate-900">Your variants will appear here</p>
@@ -439,7 +439,7 @@ function ImagePanel({ campaigns }: { campaigns: Campaign[] }) {
       <div className="lg:col-span-2">
         {images.length === 0 ? (
           <Card className="flex h-full min-h-[300px] flex-col items-center justify-center p-12 text-center">
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-electric-500/10 text-electric-600">
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-md border border-slate-200 bg-white text-electric-600">
               <ImageIcon className="h-6 w-6" />
             </div>
             <p className="font-medium text-slate-900">

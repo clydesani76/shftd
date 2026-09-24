@@ -79,7 +79,7 @@ export default function StrategyPage() {
         }
       />
 
-      <div className="mb-6 rounded-xl border border-slate-200 bg-ink-800/40 p-4 text-sm text-slate-500">
+      <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
         SHFTD weighs live competitor intelligence against your{" "}
         <span className="text-electric-600">Marketing Memory</span> to recommend
         a lower-risk proven play and a higher-upside original play. Every
@@ -130,8 +130,8 @@ function StrategyCard({
     <Card
       className={
         isProven
-          ? "border-cyber/20 shadow-glow-cyber"
-          : "border-electric-500/20 shadow-glow"
+          ? "border-l-2 border-l-cyber"
+          : "border-l-2 border-l-electric-500"
       }
     >
       <CardHeader>
@@ -151,15 +151,15 @@ function StrategyCard({
       <CardContent className="space-y-4">
         <p className="text-sm text-slate-600">{strategy.concept}</p>
 
-        <div className="rounded-lg border border-slate-200 bg-ink-800/50 p-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
             Why this is recommended
           </p>
           <p className="mt-1 text-sm text-slate-600">{strategy.rationale}</p>
         </div>
 
-        <div className="rounded-lg bg-slate-50 p-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
             Expected upside
           </p>
           <p className="mt-1 text-sm text-slate-600">{strategy.expectedUpside}</p>
@@ -231,7 +231,7 @@ function Detail({
 }) {
   return (
     <div>
-      <p className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-slate-500">
+      <p className="mb-2 flex items-center gap-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
         <Icon className="h-3.5 w-3.5" /> {label}
       </p>
       {children}

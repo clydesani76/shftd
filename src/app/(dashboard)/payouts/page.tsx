@@ -121,7 +121,7 @@ export default function PayoutsPage() {
           </CardHeader>
           <CardContent className="p-0">
             <table className="w-full text-sm">
-              <thead className="border-y border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
+              <thead className="border-y border-slate-200 text-left font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
                 <tr>
                   <th className="px-4 py-2 font-medium">Creator</th>
                   <th className="px-4 py-2 font-medium">Campaign</th>

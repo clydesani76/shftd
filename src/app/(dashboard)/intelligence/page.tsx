@@ -313,8 +313,8 @@ function InsightBucket({
             <p className="font-medium text-slate-900">{i.title}</p>
             <p className="mt-1 text-sm text-slate-500">{i.explanation}</p>
 
-            <div className="mt-3 rounded-lg border border-slate-200 bg-ink-800/50 p-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-electric-600">
+            <div className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+              <p className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-electric-600">
                 Recommendation
               </p>
               <p className="mt-1 text-sm text-slate-600">{i.recommendation}</p>

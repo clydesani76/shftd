@@ -95,7 +95,7 @@ export function CompetitorAnalysisPanel({
   }, [autoRun]);
 
   return (
-    <Card className="mb-6 border-electric-500/30 shadow-glow">
+    <Card className="mb-6 border-slate-300">
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div>
           <CardTitle className="flex items-center gap-2">
@@ -139,7 +139,7 @@ export function CompetitorAnalysisPanel({
         )}
 
         {!run.isPending && !analysis && (
-          <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center">
+          <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center">
             <ShieldAlert className="mx-auto mb-2 h-6 w-6 text-slate-400" />
             <p className="text-sm font-medium text-slate-900">
               No analysis yet
@@ -181,12 +181,12 @@ function Report({
     <div className="space-y-6">
       {/* Headline: overall score + threat + summary */}
       <div className="grid gap-4 sm:grid-cols-[auto_1fr] sm:items-center">
-        <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <div className="flex items-center gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
           <div className="text-center">
-            <p className="text-3xl font-bold text-header">
+            <p className="font-mono text-3xl font-semibold tabular-nums text-header">
               {analysis.overallScore}
             </p>
-            <p className="text-[11px] uppercase tracking-wide text-slate-500">
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">
               Strength
             </p>
           </div>
@@ -215,7 +215,7 @@ function Report({
       {analysis.discovered &&
         (analysis.discovered.socialLinks.length > 0 ||
           analysis.discovered.detectedTech.length > 0) && (
-          <div className="rounded-xl border border-teal-500/20 bg-teal-500/[0.04] p-4">
+          <div className="rounded-lg border border-teal-500/25 bg-teal-500/[0.04] p-4">
             <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-teal-700">
               <ShieldCheck className="h-4 w-4" /> Verified from their live site
               <span className="font-normal text-teal-600/70">
@@ -224,7 +224,7 @@ function Report({
             </p>
             {analysis.discovered.socialLinks.length > 0 && (
               <div className="mb-3">
-                <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-slate-500">
+                <p className="mb-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
                   Social profiles found
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -245,7 +245,7 @@ function Report({
             )}
             {analysis.discovered.detectedTech.length > 0 && (
               <div>
-                <p className="mb-1.5 flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-slate-500">
+                <p className="mb-1.5 flex items-center gap-1 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
                   <Cpu className="h-3 w-3" /> Marketing tech detected
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -262,7 +262,7 @@ function Report({
 
       {/* Real ads from the Meta Ad Library */}
       {analysis.liveAds && analysis.liveAds.length > 0 && (
-        <div className="rounded-xl border border-teal-500/20 bg-teal-500/[0.04] p-4">
+        <div className="rounded-lg border border-teal-500/25 bg-teal-500/[0.04] p-4">
           <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-teal-700">
             <Newspaper className="h-4 w-4" /> Their live ads · Meta Ad Library
             <span className="font-normal text-teal-600/70">

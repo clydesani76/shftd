@@ -113,7 +113,7 @@ export function AdminDashboard() {
         <Card>
           <CardContent className="p-0">
             <table className="w-full text-sm">
-              <thead className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
+              <thead className="border-b border-slate-200 text-left font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
                 <tr>
                   <th className="px-4 py-3 font-medium">Name</th>
                   <th className="px-4 py-3 font-medium">Email</th>

@@ -91,20 +91,20 @@ export default function MemoryPage() {
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <Card className="p-4">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Learnings stored</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-900">{memory.length}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">Learnings stored</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">{memory.length}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Validated wins</p>
-          <p className="mt-1 text-2xl font-semibold text-emerald-600">{wins}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">Validated wins</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-emerald-600">{wins}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Logged failures</p>
-          <p className="mt-1 text-2xl font-semibold text-rose-600">{losses}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">Logged failures</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-rose-600">{losses}</p>
         </Card>
       </div>
 
-      <div className="rounded-xl border border-electric-500/20 bg-electric-500/5 p-4 text-sm text-slate-600">
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
         <span className="font-medium text-electric-700">How this is used:</span>{" "}
         The Strategy Engine reads these notes when generating recommendations —
         reusing proven hooks, avoiding failed angles, and favoring the creator
@@ -123,7 +123,7 @@ export default function MemoryPage() {
                 <div key={m.id} className="relative">
                   <span
                     className={cn(
-                      "absolute -left-[31px] flex h-6 w-6 items-center justify-center rounded-full border bg-ink-800",
+                      "absolute -left-[31px] flex h-6 w-6 items-center justify-center rounded-md border bg-white",
                       m.outcome === "win"
                         ? "border-signal-green/40 text-emerald-600"
                         : m.outcome === "loss"

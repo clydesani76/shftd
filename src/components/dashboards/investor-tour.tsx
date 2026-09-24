@@ -92,9 +92,9 @@ export function InvestorTour() {
       <button
         onClick={start}
         className={cn(
-          "fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full",
-          "bg-electric-gradient px-4 py-2.5 text-sm font-semibold text-white shadow-glow",
-          "transition-transform hover:scale-[1.03] active:scale-95",
+          "fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-md",
+          "bg-slate-900 px-4 py-2.5 font-mono text-xs font-medium uppercase tracking-wider text-white shadow-sm",
+          "transition-colors hover:bg-slate-800",
         )}
       >
         <Presentation className="h-4 w-4" /> Investor tour
@@ -106,11 +106,11 @@ export function InvestorTour() {
           onClick={() => setOpen(false)}
         >
           <div
-            className="animate-fade-in w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl"
+            className="animate-fade-in w-full max-w-lg rounded-lg border border-slate-200 bg-white p-6 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-start justify-between">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-electric-500/10 text-electric-600">
+              <div className="flex h-11 w-11 items-center justify-center rounded-md border border-slate-200 bg-white text-electric-600">
                 <Icon className="h-6 w-6" />
               </div>
               <button
@@ -141,7 +141,7 @@ export function InvestorTour() {
                   className={cn(
                     "h-1.5 rounded-full transition-all",
                     i === step
-                      ? "w-6 bg-electric-gradient"
+                      ? "w-6 bg-electric-600"
                       : "w-1.5 bg-slate-200 hover:bg-slate-300",
                   )}
                 />
