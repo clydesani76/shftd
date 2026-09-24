@@ -91,10 +91,23 @@ export function useMemoryData(): Result<BrandMemoryNote[]> {
   };
 }
 
-// Payout ledger — no real payout backend yet (Stripe stubbed), so real = empty.
-export function useLedgerData(): Result<LedgerEntry[]> {
-  const { isDemo } = useSession();
-  return { data: isDemo ? mock.LEDGER : [], isLoading: false, isDemo };
+// Payout ledger — real workspaces read obligations created by approving
+// deliverables; demo shows the sample ledger. (Entries are never marked "paid"
+// without a verified payment — enforced server-side.)
+export function useLedgerData(): Result<
+  (LedgerEntry & { creatorName?: string; campaignName?: string })[]
+> {
+  const { workspace, isDemo } = useSession();
+  const q = useQuery<(LedgerEntry & { creatorName?: string; campaignName?: string })[]>({
+    queryKey: ["ledger", workspace],
+    enabled: !isDemo,
+    queryFn: () => getArray("/api/ledger", "ledger"),
+  });
+  return {
+    data: isDemo ? mock.LEDGER : q.data ?? [],
+    isLoading: isDemo ? false : q.isLoading,
+    isDemo,
+  };
 }
 
 export function useMarketplaceData(): Result<MarketplaceListing[]> {

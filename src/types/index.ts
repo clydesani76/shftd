@@ -198,8 +198,12 @@ export interface Submission {
   contentUrl?: string;
   fileName?: string;
   note: string;
+  publicationDate?: ISODate;
+  evidenceUrl?: string;
   status: SubmissionStatus;
   reviewerNote?: string;
+  reviewedBy?: string;
+  reviewedAt?: ISODate;
   submittedAt: ISODate;
 }
 
@@ -249,14 +253,21 @@ export type LedgerType =
   | "base_pay"
   | "performance_bonus"
   | "sales_bonus"
+  | "licensing_fee"
   | "payout";
 
-export type LedgerStatus = "pending" | "approved" | "paid";
+export type LedgerStatus =
+  | "pending"
+  | "approved"
+  | "paid"
+  | "failed"
+  | "disputed";
 
 export interface LedgerEntry {
   id: UUID;
   campaignId: UUID;
   creatorId: UUID;
+  submissionId?: UUID;
   type: LedgerType;
   amount: number;
   status: LedgerStatus;

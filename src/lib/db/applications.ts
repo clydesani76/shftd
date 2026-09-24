@@ -163,3 +163,36 @@ export async function createApplication(
     appliedAt: r.applied_at,
   };
 }
+
+// Brand accepts a creator and records the agreed base pay + bonus terms. Only
+// legal from applied/invited. These terms drive the payout obligation created
+// when the creator's deliverable is approved.
+export async function acceptApplication(
+  id: string,
+  terms: { agreedBasePay: number; agreedBonus: number },
+): Promise<void> {
+  const db = createServiceSupabase();
+  if (!db) return;
+  const { error } = await db
+    .from("campaign_applications")
+    .update({
+      status: "accepted",
+      agreed_base_pay: Math.max(0, terms.agreedBasePay),
+      agreed_bonus: Math.max(0, terms.agreedBonus),
+    })
+    .eq("id", id)
+    .in("status", ["applied", "invited"]);
+  if (error) throw new Error(error.message);
+}
+
+// Reject an application (from applied/invited).
+export async function rejectApplication(id: string): Promise<void> {
+  const db = createServiceSupabase();
+  if (!db) return;
+  const { error } = await db
+    .from("campaign_applications")
+    .update({ status: "rejected" })
+    .eq("id", id)
+    .in("status", ["applied", "invited"]);
+  if (error) throw new Error(error.message);
+}

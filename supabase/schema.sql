@@ -21,8 +21,8 @@ create type campaign_status as enum ('draft','published','live','review','comple
 create type application_status as enum ('applied','invited','accepted','rejected');
 create type submission_status as enum ('submitted','approved','rejected','revision_requested');
 create type copy_type as enum ('hook','headline','caption','cta','script','landing_page','ad');
-create type ledger_type as enum ('base_pay','performance_bonus','sales_bonus','payout');
-create type ledger_status as enum ('pending','approved','paid');
+create type ledger_type as enum ('base_pay','performance_bonus','sales_bonus','licensing_fee','payout');
+create type ledger_status as enum ('pending','approved','paid','failed','disputed');
 create type memory_kind as enum ('winning_hook','failed_angle','best_creator_type','best_platform','best_offer','general');
 create type memory_outcome as enum ('win','loss','neutral');
 
@@ -172,6 +172,9 @@ create table campaign_applications (
   role creator_role not null,
   status application_status not null default 'applied',
   pitch text,
+  -- Agreed terms, set by the brand when a creator is accepted.
+  agreed_base_pay numeric default 0,
+  agreed_bonus numeric default 0,
   applied_at timestamptz not null default now()
 );
 
@@ -182,8 +185,12 @@ create table submissions (
   content_url text,
   file_name text,
   note text,
+  publication_date date,
+  evidence_url text,
   status submission_status not null default 'submitted',
   reviewer_note text,
+  reviewed_by text,
+  reviewed_at timestamptz,
   submitted_at timestamptz not null default now()
 );
 
@@ -236,10 +243,14 @@ create table ledger_entries (
   id uuid primary key default gen_random_uuid(),
   campaign_id uuid not null references campaigns(id) on delete cascade,
   creator_id uuid not null references creator_profiles(id) on delete cascade,
+  submission_id uuid references submissions(id) on delete set null,
   type ledger_type not null,
   amount numeric not null default 0,
   status ledger_status not null default 'pending',
   note text,
+  -- Deterministic key ("<submission>:<type>") so approving the same
+  -- deliverable twice never creates a duplicate payout obligation.
+  idempotency_key text unique,
   created_at timestamptz not null default now()
 );
 
@@ -363,3 +374,28 @@ create policy "auth read ledger" on ledger_entries for select using (auth.uid() 
 insert into storage.buckets (id, name, public)
 values ('campaign-images', 'campaign-images', true)
 on conflict (id) do nothing;
+
+-- ════════════════════════════════════════════════════════════════
+-- Incremental migrations (safe to run on an existing database)
+-- Run these in the Supabase SQL editor if your DB predates the
+-- submission→payout chain. Each is idempotent.
+-- ════════════════════════════════════════════════════════════════
+-- Enum additions (ALTER TYPE ... ADD VALUE cannot run inside a txn block;
+-- run these statements individually if your editor wraps them).
+alter type ledger_status add value if not exists 'failed';
+alter type ledger_status add value if not exists 'disputed';
+alter type ledger_type add value if not exists 'licensing_fee';
+
+alter table campaigns add column if not exists brief_approved_at timestamptz;
+
+alter table campaign_applications add column if not exists agreed_base_pay numeric default 0;
+alter table campaign_applications add column if not exists agreed_bonus numeric default 0;
+
+alter table submissions add column if not exists publication_date date;
+alter table submissions add column if not exists evidence_url text;
+alter table submissions add column if not exists reviewed_by text;
+alter table submissions add column if not exists reviewed_at timestamptz;
+
+alter table ledger_entries add column if not exists submission_id uuid references submissions(id) on delete set null;
+alter table ledger_entries add column if not exists idempotency_key text;
+create unique index if not exists ledger_entries_idempotency_key_uq on ledger_entries (idempotency_key);

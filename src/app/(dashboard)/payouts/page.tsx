@@ -18,6 +18,8 @@ const ledgerTone: Record<LedgerStatus, Parameters<typeof Badge>[0]["tone"]> = {
   pending: "amber",
   approved: "cyber",
   paid: "green",
+  failed: "red",
+  disputed: "red",
 };
 
 export default function PayoutsPage() {
@@ -141,8 +143,8 @@ export default function PayoutsPage() {
                 )}
                 {ledger.map((l) => (
                   <tr key={l.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 text-slate-900">{getCreator(l.creatorId)?.name}</td>
-                    <td className="px-4 py-3 text-slate-500">{getCampaign(l.campaignId)?.name}</td>
+                    <td className="px-4 py-3 text-slate-900">{l.creatorName ?? getCreator(l.creatorId)?.name ?? "Creator"}</td>
+                    <td className="px-4 py-3 text-slate-500">{l.campaignName ?? getCampaign(l.campaignId)?.name ?? "—"}</td>
                     <td className="px-4 py-3 text-slate-600">{titleCase(l.type)}</td>
                     <td className="px-4 py-3 font-medium text-slate-900">
                       {formatCurrency(l.amount)}
@@ -163,8 +165,11 @@ export default function PayoutsPage() {
         <SectionLabel>Creator earnings & bonus progress</SectionLabel>
         <div className="grid gap-4 md:grid-cols-2">
           {Array.from(new Set(ledger.map((l) => l.creatorId))).map((cid) => {
-            const creator = getCreator(cid);
             const entries = ledger.filter((l) => l.creatorId === cid);
+            const creatorName =
+              entries.find((l) => l.creatorName)?.creatorName ??
+              getCreator(cid)?.name ??
+              "Creator";
             const earned = entries.reduce((s, l) => s + l.amount, 0);
             const bonus = entries
               .filter((l) => l.type === "performance_bonus")
@@ -172,7 +177,7 @@ export default function PayoutsPage() {
             return (
               <Card key={cid} className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="font-medium text-slate-900">{creator?.name}</p>
+                  <p className="font-medium text-slate-900">{creatorName}</p>
                   <span className="text-sm font-semibold text-emerald-600">
                     {formatCurrency(earned)}
                   </span>
