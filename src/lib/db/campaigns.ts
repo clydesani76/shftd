@@ -33,6 +33,7 @@ interface CampaignRow {
   budget: number | null;
   base_pay_pool: number | null;
   performance_bonus_pool: number | null;
+  brief_approved_at: string | null;
   created_at: string;
 }
 
@@ -57,6 +58,7 @@ function rowToCampaign(r: CampaignRow): Campaign {
     budget: Number(r.budget ?? 0),
     basePayPool: Number(r.base_pay_pool ?? 0),
     performanceBonusPool: Number(r.performance_bonus_pool ?? 0),
+    briefApprovedAt: r.brief_approved_at ?? undefined,
     createdAt: r.created_at,
   };
 }
@@ -185,5 +187,18 @@ export async function updateCampaignStatus(
     .from("campaigns")
     .update({ status })
     .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+// Approve the brief (idempotent — only stamps the first time). Required
+// before a draft can be published to the marketplace.
+export async function approveBrief(id: string): Promise<void> {
+  const db = createServiceSupabase();
+  if (!db) return;
+  const { error } = await db
+    .from("campaigns")
+    .update({ brief_approved_at: new Date().toISOString() })
+    .eq("id", id)
+    .is("brief_approved_at", null);
   if (error) throw new Error(error.message);
 }

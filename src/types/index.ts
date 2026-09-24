@@ -155,6 +155,8 @@ export interface Campaign {
   budget: number;
   basePayPool: number;
   performanceBonusPool: number;
+  // Set when the brand approves the brief; required before publishing.
+  briefApprovedAt?: ISODate;
   createdAt: ISODate;
 }
 

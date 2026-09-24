@@ -77,7 +77,8 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
     },
   });
 
-  // Persist status changes (Publish / Go live) to the database.
+  // Persist status changes (Publish / Go live) to the database. The server
+  // enforces the state machine and returns 409 with a reason on illegal moves.
   const statusMutation = useMutation({
     mutationFn: async (status: Campaign["status"]) => {
       const res = await fetch(`/api/campaigns/${campaignId}`, {
@@ -85,12 +86,29 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      if (!res.ok) throw new Error("Failed to update status");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Failed to update status");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["campaign", campaignId] });
       queryClient.invalidateQueries({ queryKey: ["campaigns"] });
     },
+  });
+
+  // Approve the brief — the gate that unlocks publishing.
+  const approveBriefMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/campaigns/${campaignId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "approve_brief" }),
+      });
+      if (!res.ok) throw new Error("Failed to approve brief");
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["campaign", campaignId] }),
   });
 
   // Real applications for this campaign (from the database).
@@ -170,7 +188,15 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
         actions={
           <div className="flex items-center gap-2">
             <StatusBadge status={status} />
-            {status === "draft" && (
+            {status === "draft" && !campaign.briefApprovedAt && (
+              <Button
+                onClick={() => approveBriefMutation.mutate()}
+                disabled={approveBriefMutation.isPending}
+              >
+                <Check className="h-4 w-4" /> Approve brief
+              </Button>
+            )}
+            {status === "draft" && campaign.briefApprovedAt && (
               <Button
                 onClick={() => statusMutation.mutate("published")}
                 disabled={statusMutation.isPending}
@@ -189,6 +215,17 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
           </div>
         }
       />
+
+      {statusMutation.isError && (
+        <div className="mb-4 rounded-md border border-signal-red/30 bg-signal-red/10 px-3 py-2 text-sm text-rose-300">
+          {(statusMutation.error as Error).message}
+        </div>
+      )}
+      {status === "draft" && campaign.briefApprovedAt && (
+        <p className="mb-4 flex items-center gap-1.5 text-xs text-emerald-400">
+          <Check className="h-3.5 w-3.5" /> Brief approved — ready to publish.
+        </p>
+      )}
 
       <div className="mb-5 flex items-center gap-2">
         <PathBadge path={campaign.path} />

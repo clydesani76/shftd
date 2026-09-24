@@ -150,6 +150,8 @@ create table campaigns (
   budget numeric default 0,
   base_pay_pool numeric default 0,
   performance_bonus_pool numeric default 0,
+  -- Set when the brand approves the brief; required before publishing.
+  brief_approved_at timestamptz,
   created_at timestamptz not null default now()
 );
 
