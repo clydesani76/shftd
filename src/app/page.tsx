@@ -12,12 +12,12 @@ import {
 } from "lucide-react";
 
 const LAYERS = [
-  { icon: Radar, title: "Intelligence", copy: "Scan competitors and surface winning patterns, overused angles, and white space." },
-  { icon: BrainCircuit, title: "Strategy Engine", copy: "Get side-by-side Safe & Proven vs Bold & Original campaign recommendations." },
-  { icon: PenLine, title: "AI Copy Studio", copy: "Generate scored hooks, captions, scripts, and ad copy in your brand voice." },
-  { icon: Users, title: "Creator Marketplace", copy: "Launch campaigns with Igniter, Amplifier, and Closer creators." },
-  { icon: BarChart3, title: "Analytics & ROI", copy: "Track views, conversions, CAC, ROAS — Proven vs Original head to head." },
-  { icon: Database, title: "Marketing Memory", copy: "Remember what worked and failed so every recommendation gets smarter." },
+  { icon: Radar, title: "Intelligence", href: "/intelligence", copy: "Scan competitors and surface winning patterns, overused angles, and white space." },
+  { icon: BrainCircuit, title: "Strategy Engine", href: "/strategy", copy: "Get side-by-side Safe & Proven vs Bold & Original campaign recommendations." },
+  { icon: PenLine, title: "AI Copy Studio", href: "/copy-studio", copy: "Generate scored hooks, captions, scripts, and ad copy in your brand voice." },
+  { icon: Users, title: "Creator Marketplace", href: "/marketplace", copy: "Launch campaigns with Igniter, Amplifier, and Closer creators." },
+  { icon: BarChart3, title: "Analytics & ROI", href: "/analytics", copy: "Track views, conversions, CAC, ROAS — Proven vs Original head to head." },
+  { icon: Database, title: "Marketing Memory", href: "/memory", copy: "Remember what worked and failed so every recommendation gets smarter." },
 ];
 
 // Capability stats — the shape of the product, not claimed traction.
@@ -142,21 +142,25 @@ export default function LandingPage() {
           <div className="mt-8 overflow-hidden rounded-lg border border-slate-200">
             <div className="grid gap-px bg-slate-200 sm:grid-cols-2 lg:grid-cols-3">
               {LAYERS.map((l, i) => (
-                <div
+                <Link
                   key={l.title}
+                  href={l.href}
                   className="group bg-ink-700 p-6 transition-colors hover:bg-slate-50"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-ink-700 text-electric-600">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-ink-700 text-electric-600 transition-colors group-hover:border-electric-500/40">
                       <l.icon className="h-5 w-5" />
                     </div>
                     <span className="font-mono text-xs text-slate-300">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                   </div>
-                  <h3 className="mt-4 font-semibold text-header">{l.title}</h3>
+                  <h3 className="mt-4 flex items-center gap-1.5 font-semibold text-header">
+                    {l.title}
+                    <ArrowRight className="h-3.5 w-3.5 -translate-x-1 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
+                  </h3>
                   <p className="mt-2 text-sm text-slate-500">{l.copy}</p>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
