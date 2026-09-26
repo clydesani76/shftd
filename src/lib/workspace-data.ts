@@ -91,20 +91,29 @@ export function useMemoryData(): Result<BrandMemoryNote[]> {
   };
 }
 
+// A ledger row as the UI consumes it (entry + display names + verified-payment
+// fields). Kept client-safe so no server code is imported here.
+export type LedgerRowView = LedgerEntry & {
+  creatorName?: string;
+  campaignName?: string;
+  paidAt?: string;
+  paidBy?: string;
+  paymentReference?: string;
+  paymentMethod?: string;
+};
+
 // Payout ledger — real workspaces read obligations created by approving
 // deliverables; demo shows the sample ledger. (Entries are never marked "paid"
 // without a verified payment — enforced server-side.)
-export function useLedgerData(): Result<
-  (LedgerEntry & { creatorName?: string; campaignName?: string })[]
-> {
+export function useLedgerData(): Result<LedgerRowView[]> {
   const { workspace, isDemo } = useSession();
-  const q = useQuery<(LedgerEntry & { creatorName?: string; campaignName?: string })[]>({
+  const q = useQuery<LedgerRowView[]>({
     queryKey: ["ledger", workspace],
     enabled: !isDemo,
     queryFn: () => getArray("/api/ledger", "ledger"),
   });
   return {
-    data: isDemo ? mock.LEDGER : q.data ?? [],
+    data: isDemo ? (mock.LEDGER as LedgerRowView[]) : q.data ?? [],
     isLoading: isDemo ? false : q.isLoading,
     isDemo,
   };

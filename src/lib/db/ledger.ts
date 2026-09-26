@@ -8,11 +8,19 @@
 import { createServiceSupabase } from "@/lib/supabase/server";
 import { LEDGER as MOCK_LEDGER } from "@/lib/mock/data";
 import type { LedgerEntry, LedgerStatus, LedgerType } from "@/types";
-import type { PayoutObligation } from "@/lib/campaign-flow";
+import {
+  canMarkPaid,
+  canResolveDispute,
+  type PayoutObligation,
+} from "@/lib/campaign-flow";
 
 export interface LedgerView extends LedgerEntry {
   creatorName?: string;
   campaignName?: string;
+  paidAt?: string;
+  paidBy?: string;
+  paymentReference?: string;
+  paymentMethod?: string;
 }
 
 interface LedgerRow {
@@ -24,6 +32,10 @@ interface LedgerRow {
   amount: number | null;
   status: LedgerStatus;
   note: string | null;
+  paid_at: string | null;
+  paid_by: string | null;
+  payment_reference: string | null;
+  payment_method: string | null;
   created_at: string;
   creator_profiles: { name: string } | null;
   campaigns: { name: string } | null;
@@ -42,6 +54,10 @@ function rowToView(r: LedgerRow): LedgerView {
     createdAt: r.created_at,
     creatorName: r.creator_profiles?.name,
     campaignName: r.campaigns?.name,
+    paidAt: r.paid_at ?? undefined,
+    paidBy: r.paid_by ?? undefined,
+    paymentReference: r.payment_reference ?? undefined,
+    paymentMethod: r.payment_method ?? undefined,
   };
 }
 
@@ -90,4 +106,75 @@ export async function recordObligations(
     .select("id");
   if (error) throw new Error(error.message);
   return data?.length ?? 0;
+}
+
+// Record a VERIFIED manual payment. Only an authorized admin may call this, only
+// from an "approved" obligation, and only WITH a payment reference. This is the
+// one legitimate path to "paid" without a payment provider — nothing here
+// simulates a real transfer. The status guard (.eq("status","approved")) also
+// makes it idempotent against a double-click.
+export async function recordVerifiedPayment(
+  id: string,
+  input: { reference: string; paidBy: string; method?: string },
+): Promise<void> {
+  const db = createServiceSupabase();
+  if (!db) throw new Error("Database not configured");
+
+  const { data: entry, error: readErr } = await db
+    .from("ledger_entries")
+    .select("status")
+    .eq("id", id)
+    .maybeSingle();
+  if (readErr) throw new Error(readErr.message);
+  if (!entry) throw new Error("Ledger entry not found");
+
+  const check = canMarkPaid(
+    (entry as { status: LedgerStatus }).status,
+    "admin_verified",
+    { hasReference: !!input.reference?.trim() },
+  );
+  if (!check.ok) throw new Error(check.reason ?? "Cannot mark paid");
+
+  const { error } = await db
+    .from("ledger_entries")
+    .update({
+      status: "paid",
+      paid_at: new Date().toISOString(),
+      paid_by: input.paidBy,
+      payment_reference: input.reference,
+      payment_method: input.method || "manual",
+    })
+    .eq("id", id)
+    .eq("status", "approved");
+  if (error) throw new Error(error.message);
+}
+
+// Admin resolves a disputed obligation to approved (payable) or failed.
+export async function resolveDispute(
+  id: string,
+  to: "approved" | "failed",
+): Promise<void> {
+  const db = createServiceSupabase();
+  if (!db) throw new Error("Database not configured");
+
+  const { data: entry, error: readErr } = await db
+    .from("ledger_entries")
+    .select("status")
+    .eq("id", id)
+    .maybeSingle();
+  if (readErr) throw new Error(readErr.message);
+  if (!entry) throw new Error("Ledger entry not found");
+
+  const check = canResolveDispute(
+    (entry as { status: LedgerStatus }).status,
+    to,
+  );
+  if (!check.ok) throw new Error(check.reason ?? "Cannot resolve");
+
+  const { error } = await db
+    .from("ledger_entries")
+    .update({ status: to })
+    .eq("id", id)
+    .eq("status", "disputed");
+  if (error) throw new Error(error.message);
 }

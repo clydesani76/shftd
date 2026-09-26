@@ -5,6 +5,7 @@ import {
   derivePayoutObligations,
   newObligations,
   canMarkPaid,
+  canResolveDispute,
 } from "@/lib/campaign-flow";
 
 describe("campaign lifecycle transitions", () => {
@@ -84,11 +85,27 @@ describe("mark-paid guardrails", () => {
   it("refuses a client-initiated paid transition", () => {
     expect(canMarkPaid("approved", "client").ok).toBe(false);
   });
-  it("allows provider- or admin-verified payment", () => {
+  it("allows provider-confirmed payment", () => {
     expect(canMarkPaid("approved", "provider_confirmed").ok).toBe(true);
-    expect(canMarkPaid("approved", "admin_verified").ok).toBe(true);
   });
-  it("won't pay a disputed obligation", () => {
-    expect(canMarkPaid("disputed", "admin_verified").ok).toBe(false);
+  it("requires a reference for an admin-verified manual payment", () => {
+    expect(canMarkPaid("approved", "admin_verified", { hasReference: false }).ok).toBe(false);
+    expect(canMarkPaid("approved", "admin_verified", { hasReference: true }).ok).toBe(true);
+  });
+  it("won't pay a pending, disputed or already-paid obligation", () => {
+    expect(canMarkPaid("pending", "admin_verified", { hasReference: true }).ok).toBe(false);
+    expect(canMarkPaid("disputed", "admin_verified", { hasReference: true }).ok).toBe(false);
+    expect(canMarkPaid("paid", "provider_confirmed").ok).toBe(false);
+  });
+});
+
+describe("dispute resolution", () => {
+  it("resolves a disputed obligation to approved or failed", () => {
+    expect(canResolveDispute("disputed", "approved").ok).toBe(true);
+    expect(canResolveDispute("disputed", "failed").ok).toBe(true);
+  });
+  it("won't resolve a non-disputed obligation", () => {
+    expect(canResolveDispute("approved", "approved").ok).toBe(false);
+    expect(canResolveDispute("pending", "failed").ok).toBe(false);
   });
 });

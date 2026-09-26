@@ -251,6 +251,13 @@ create table ledger_entries (
   -- Deterministic key ("<submission>:<type>") so approving the same
   -- deliverable twice never creates a duplicate payout obligation.
   idempotency_key text unique,
+  -- Verified payment record. An obligation only becomes 'paid' when a payment
+  -- provider confirms it or an authorized admin records a verified manual
+  -- payment WITH a reference — never simulated.
+  paid_at timestamptz,
+  paid_by text,
+  payment_reference text,
+  payment_method text, -- 'manual' | 'stripe' | ...
   created_at timestamptz not null default now()
 );
 
@@ -399,3 +406,9 @@ alter table submissions add column if not exists reviewed_at timestamptz;
 alter table ledger_entries add column if not exists submission_id uuid references submissions(id) on delete set null;
 alter table ledger_entries add column if not exists idempotency_key text;
 create unique index if not exists ledger_entries_idempotency_key_uq on ledger_entries (idempotency_key);
+
+-- Verified-payment fields on the ledger (part (a)).
+alter table ledger_entries add column if not exists paid_at timestamptz;
+alter table ledger_entries add column if not exists paid_by text;
+alter table ledger_entries add column if not exists payment_reference text;
+alter table ledger_entries add column if not exists payment_method text;

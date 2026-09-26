@@ -143,19 +143,42 @@ export function newObligations(
   return obligations.filter((o) => !seen.has(o.idempotencyKey));
 }
 
-// A payout may only be marked paid via a verified path.
+// A payout may only be marked paid via a verified path, and only from an
+// "approved" obligation with a payment reference present.
 export function canMarkPaid(
   from: PayoutStatus,
   by: "provider_confirmed" | "admin_verified" | "client",
+  opts: { hasReference?: boolean } = {},
 ): TransitionCheck {
   if (from === "paid") return { ok: false, reason: "Already paid" };
   if (from === "disputed")
     return { ok: false, reason: "Resolve the dispute before paying" };
+  if (from !== "approved")
+    return { ok: false, reason: `Cannot pay a ${from} obligation` };
   if (by === "client") {
     return {
       ok: false,
       reason: "Payments require provider confirmation or an admin-verified record",
     };
   }
+  if (by === "admin_verified" && !opts.hasReference) {
+    return {
+      ok: false,
+      reason: "A verified manual payment must include a payment reference",
+    };
+  }
+  return { ok: true };
+}
+
+// An authorized admin resolves a disputed obligation — either approving it for
+// payment or marking it failed. No other transition out of "disputed".
+export function canResolveDispute(
+  from: PayoutStatus,
+  to: "approved" | "failed",
+): TransitionCheck {
+  if (from !== "disputed")
+    return { ok: false, reason: "Only a disputed obligation can be resolved" };
+  if (to !== "approved" && to !== "failed")
+    return { ok: false, reason: "Resolve to approved or failed" };
   return { ok: true };
 }

@@ -1,18 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageHeader, SectionLabel, ProgressBar } from "@/components/ui/misc";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getCampaign, getCreator } from "@/lib/data";
-import { useLedgerData, useCampaignsData } from "@/lib/workspace-data";
+import { useLedgerData, useCampaignsData, type LedgerRowView } from "@/lib/workspace-data";
 import { config } from "@/lib/config";
 import { useSession } from "@/components/session";
 import { cn, formatCurrency, titleCase } from "@/lib/utils";
 import type { LedgerStatus } from "@/types";
-import { Wallet, TrendingUp, Clock, CreditCard, ArrowRight } from "lucide-react";
+import { Wallet, TrendingUp, Clock, CreditCard, ShieldCheck } from "lucide-react";
 
 const ledgerTone: Record<LedgerStatus, Parameters<typeof Badge>[0]["tone"]> = {
   pending: "amber",
@@ -23,12 +24,37 @@ const ledgerTone: Record<LedgerStatus, Parameters<typeof Badge>[0]["tone"]> = {
 };
 
 export default function PayoutsPage() {
-  const { role } = useSession();
+  const { role, user, isDemo } = useSession();
+  const queryClient = useQueryClient();
   const { data: ledger } = useLedgerData();
   const { data: campaigns } = useCampaignsData();
   const [connected, setConnected] = useState(false);
 
   const isAdmin = role === "admin";
+
+  // Admin: record a verified manual payment, or resolve a disputed obligation.
+  const ledgerMutation = useMutation({
+    mutationFn: async (input: {
+      id: string;
+      action: "mark_paid" | "resolve_dispute";
+      reference?: string;
+      resolution?: "approved" | "failed";
+    }) => {
+      const res = await fetch(`/api/ledger/${input.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...input, paidBy: user.fullName }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error ?? "Failed");
+      }
+      return res.json();
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["ledger"] }),
+  });
+  const canAct = isAdmin && !isDemo;
 
   const totalBudget = campaigns.reduce((s, c) => s + c.budget, 0);
   const totalBase = campaigns.reduce((s, c) => s + c.basePayPool, 0);
@@ -109,13 +135,11 @@ export default function PayoutsPage() {
           <CardHeader className="flex-row items-center justify-between">
             <div>
               <CardTitle>Payment ledger</CardTitle>
-              <p className="text-sm text-slate-500">Every base pay & bonus entry.</p>
+              <p className="text-sm text-slate-500">
+                Base pay, bonuses &amp; licensing — separate entries. Paid only
+                on verified payment.
+              </p>
             </div>
-            {isAdmin && (
-              <Button size="sm" variant="outline">
-                Approve all pending <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
-            )}
           </CardHeader>
           <CardContent className="p-0">
             <table className="w-full text-sm">
@@ -126,13 +150,14 @@ export default function PayoutsPage() {
                   <th className="px-4 py-2 font-medium">Type</th>
                   <th className="px-4 py-2 font-medium">Amount</th>
                   <th className="px-4 py-2 font-medium">Status</th>
+                  <th className="px-4 py-2 font-medium">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {ledger.length === 0 && (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={6}
                       className="px-4 py-10 text-center text-sm text-slate-500"
                     >
                       No payout activity yet. Payout obligations are created when
@@ -142,7 +167,7 @@ export default function PayoutsPage() {
                   </tr>
                 )}
                 {ledger.map((l) => (
-                  <tr key={l.id} className="hover:bg-slate-50">
+                  <tr key={l.id} className="align-top hover:bg-slate-50">
                     <td className="px-4 py-3 text-slate-900">{l.creatorName ?? getCreator(l.creatorId)?.name ?? "Creator"}</td>
                     <td className="px-4 py-3 text-slate-500">{l.campaignName ?? getCampaign(l.campaignId)?.name ?? "—"}</td>
                     <td className="px-4 py-3 text-slate-600">{titleCase(l.type)}</td>
@@ -151,11 +176,47 @@ export default function PayoutsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <Badge tone={ledgerTone[l.status]}>{l.status}</Badge>
+                      {l.status === "paid" && l.paymentReference && (
+                        <p className="mt-1 flex items-center gap-1 text-[11px] text-emerald-400">
+                          <ShieldCheck className="h-3 w-3" /> ref{" "}
+                          {l.paymentReference}
+                          {l.paidBy ? ` · ${l.paidBy}` : ""}
+                        </p>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {canAct ? (
+                        <PaymentControls
+                          entry={l}
+                          onPay={(reference) =>
+                            ledgerMutation.mutate({
+                              id: l.id,
+                              action: "mark_paid",
+                              reference,
+                            })
+                          }
+                          onResolve={(resolution) =>
+                            ledgerMutation.mutate({
+                              id: l.id,
+                              action: "resolve_dispute",
+                              resolution,
+                            })
+                          }
+                          pending={ledgerMutation.isPending}
+                        />
+                      ) : (
+                        <span className="text-xs text-slate-500">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {ledgerMutation.isError && (
+              <p className="px-4 py-2 text-xs text-rose-300">
+                {(ledgerMutation.error as Error).message}
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -213,6 +274,69 @@ function Row({
       <span className={tone === "green" ? "text-emerald-600" : "text-amber-600"}>
         {value}
       </span>
+    </div>
+  );
+}
+
+// Admin controls for a single obligation: record a verified manual payment
+// (approved → paid, reference required) or resolve a dispute.
+function PaymentControls({
+  entry,
+  onPay,
+  onResolve,
+  pending,
+}: {
+  entry: LedgerRowView;
+  onPay: (reference: string) => void;
+  onResolve: (resolution: "approved" | "failed") => void;
+  pending?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [reference, setReference] = useState("");
+
+  if (entry.status === "disputed") {
+    return (
+      <div className="flex gap-1.5">
+        <Button size="sm" variant="outline" disabled={pending} onClick={() => onResolve("approved")}>
+          Approve
+        </Button>
+        <Button size="sm" variant="danger" disabled={pending} onClick={() => onResolve("failed")}>
+          Fail
+        </Button>
+      </div>
+    );
+  }
+
+  if (entry.status !== "approved") {
+    return <span className="text-xs text-slate-500">—</span>;
+  }
+
+  if (!open) {
+    return (
+      <Button size="sm" disabled={pending} onClick={() => setOpen(true)}>
+        Record payment
+      </Button>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <input
+        value={reference}
+        onChange={(e) => setReference(e.target.value)}
+        placeholder="Payment reference"
+        className="h-8 w-40 rounded border border-slate-200 bg-ink-700 px-2 text-xs text-slate-900 placeholder:text-slate-400 ring-focus"
+      />
+      <Button
+        size="sm"
+        disabled={pending || !reference.trim()}
+        onClick={() => onPay(reference.trim())}
+      >
+        Confirm
+      </Button>
+      <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+        Cancel
+      </Button>
     </div>
   );
 }
