@@ -6,6 +6,8 @@ import {
   newObligations,
   canMarkPaid,
   canResolveDispute,
+  canChangeRights,
+  rightsGranted,
 } from "@/lib/campaign-flow";
 
 describe("campaign lifecycle transitions", () => {
@@ -107,5 +109,27 @@ describe("dispute resolution", () => {
   it("won't resolve a non-disputed obligation", () => {
     expect(canResolveDispute("approved", "approved").ok).toBe(false);
     expect(canResolveDispute("pending", "failed").ok).toBe(false);
+  });
+});
+
+describe("UGC rights consent", () => {
+  it("requires explicit consent to grant (accepted only)", () => {
+    expect(rightsGranted("proposed")).toBe(false);
+    expect(rightsGranted("accepted")).toBe(true);
+    expect(rightsGranted("declined")).toBe(false);
+    expect(rightsGranted("revoked")).toBe(false);
+  });
+  it("allows accept/decline from proposed", () => {
+    expect(canChangeRights("proposed", "accepted").ok).toBe(true);
+    expect(canChangeRights("proposed", "declined").ok).toBe(true);
+  });
+  it("allows revoke/expire only after acceptance", () => {
+    expect(canChangeRights("accepted", "revoked").ok).toBe(true);
+    expect(canChangeRights("accepted", "expired").ok).toBe(true);
+    expect(canChangeRights("proposed", "revoked").ok).toBe(false);
+  });
+  it("won't re-open a declined or revoked agreement (expand = new proposal)", () => {
+    expect(canChangeRights("declined", "accepted").ok).toBe(false);
+    expect(canChangeRights("revoked", "accepted").ok).toBe(false);
   });
 });

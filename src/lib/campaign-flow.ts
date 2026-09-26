@@ -10,6 +10,7 @@
 import type {
   CampaignStatus,
   LedgerType,
+  RightsStatus,
   SubmissionStatus,
 } from "@/types";
 
@@ -181,4 +182,32 @@ export function canResolveDispute(
   if (to !== "approved" && to !== "failed")
     return { ok: false, reason: "Resolve to approved or failed" };
   return { ok: true };
+}
+
+// ── UGC rights / licensing ────────────────────────────────────
+// A brand PROPOSES rights; the creator must EXPLICITLY consent (accept) before
+// they are granted. Accepted rights can later be revoked or expire. Expanding
+// rights = a new proposal (a new agreement row), never an in-place widening.
+export const RIGHTS_TRANSITIONS: Record<RightsStatus, RightsStatus[]> = {
+  proposed: ["accepted", "declined"],
+  accepted: ["revoked", "expired"],
+  declined: [],
+  revoked: [],
+  expired: [],
+};
+
+export function canChangeRights(
+  from: RightsStatus,
+  to: RightsStatus,
+): TransitionCheck {
+  const allowed = RIGHTS_TRANSITIONS[from] ?? [];
+  if (!allowed.includes(to)) {
+    return { ok: false, reason: `Cannot move rights from ${from} to ${to}` };
+  }
+  return { ok: true };
+}
+
+// Rights are only granted with explicit creator consent.
+export function rightsGranted(status: RightsStatus): boolean {
+  return status === "accepted";
 }

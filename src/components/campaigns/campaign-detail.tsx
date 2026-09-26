@@ -19,6 +19,7 @@ import {
   getSubmissions,
 } from "@/lib/data";
 import { useSession } from "@/components/session";
+import { RightsPanel } from "@/components/campaigns/rights-panel";
 
 // Flattened application shape returned by /api/applications.
 interface AppView {
@@ -587,6 +588,14 @@ export function CampaignDetail({ campaignId }: { campaignId: string }) {
                   Approved — a payout obligation was created (pending until a
                   verified payment).
                 </p>
+              )}
+              {!isDemo && (
+                <RightsPanel
+                  submissionId={s.id}
+                  isBrand={isBrand}
+                  isCreator={isCreator}
+                  userName={user.fullName}
+                />
               )}
             </Card>
           ))}

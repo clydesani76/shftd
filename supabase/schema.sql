@@ -23,6 +23,8 @@ create type submission_status as enum ('submitted','approved','rejected','revisi
 create type copy_type as enum ('hook','headline','caption','cta','script','landing_page','ad');
 create type ledger_type as enum ('base_pay','performance_bonus','sales_bonus','licensing_fee','payout');
 create type ledger_status as enum ('pending','approved','paid','failed','disputed');
+create type rights_status as enum ('proposed','accepted','declined','revoked','expired');
+create type rights_usage as enum ('organic','paid','both');
 create type memory_kind as enum ('winning_hook','failed_angle','best_creator_type','best_platform','best_offer','general');
 create type memory_outcome as enum ('win','loss','neutral');
 
@@ -238,6 +240,31 @@ create table campaign_assets (
   created_at timestamptz not null default now()
 );
 
+-- ── UGC rights / licensing ──────────────────────────────────────
+-- One agreement per proposal, tied to a specific deliverable. Expanding rights
+-- means a NEW row (a new proposal the creator must consent to again); the full
+-- set of rows is the license history. Rights are granted only on explicit
+-- creator consent (status = 'accepted' with consented_at set).
+create table rights_agreements (
+  id uuid primary key default gen_random_uuid(),
+  submission_id uuid not null references submissions(id) on delete cascade,
+  campaign_id uuid not null references campaigns(id) on delete cascade,
+  creator_id uuid not null references creator_profiles(id) on delete cascade,
+  channels text[] default '{}',
+  usage rights_usage not null default 'organic',
+  duration_days int default 0,
+  territory text,
+  editing_allowed boolean not null default false,
+  fee numeric not null default 0,
+  expires_at date,
+  status rights_status not null default 'proposed',
+  proposed_by text,
+  proposed_at timestamptz not null default now(),
+  consented_by text,
+  consented_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
 -- ── Payouts & ledger ────────────────────────────────────────────
 create table ledger_entries (
   id uuid primary key default gen_random_uuid(),
@@ -298,6 +325,7 @@ create index on campaigns (org_id);
 create index on campaigns (status);
 create index on campaign_applications (campaign_id);
 create index on submissions (campaign_id);
+create index on rights_agreements (submission_id);
 create index on copy_variants (org_id);
 create index on campaign_assets (org_id);
 create index on campaign_assets (campaign_id);
@@ -327,6 +355,7 @@ alter table campaigns enable row level security;
 alter table campaign_marketplace enable row level security;
 alter table campaign_applications enable row level security;
 alter table submissions enable row level security;
+alter table rights_agreements enable row level security;
 alter table copy_variants enable row level security;
 alter table campaign_saved_copy enable row level security;
 alter table campaign_assets enable row level security;
@@ -367,6 +396,9 @@ create policy "auth read applications" on campaign_applications for select using
 create policy "auth write applications" on campaign_applications for insert with check (auth.uid() is not null);
 create policy "auth read submissions" on submissions for select using (auth.uid() is not null);
 create policy "auth write submissions" on submissions for insert with check (auth.uid() is not null);
+create policy "auth read rights" on rights_agreements for select using (auth.uid() is not null);
+create policy "auth write rights" on rights_agreements for insert with check (auth.uid() is not null);
+create policy "auth update rights" on rights_agreements for update using (auth.uid() is not null);
 create policy "auth read creators" on creator_profiles for select using (auth.uid() is not null);
 create policy "auth read metrics" on campaign_metrics for select using (auth.uid() is not null);
 create policy "auth read ledger" on ledger_entries for select using (auth.uid() is not null);
@@ -412,3 +444,33 @@ alter table ledger_entries add column if not exists paid_at timestamptz;
 alter table ledger_entries add column if not exists paid_by text;
 alter table ledger_entries add column if not exists payment_reference text;
 alter table ledger_entries add column if not exists payment_method text;
+
+-- UGC rights / licensing (part (b)). Enums first (run individually if wrapped).
+do $$ begin
+  create type rights_status as enum ('proposed','accepted','declined','revoked','expired');
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create type rights_usage as enum ('organic','paid','both');
+exception when duplicate_object then null; end $$;
+
+create table if not exists rights_agreements (
+  id uuid primary key default gen_random_uuid(),
+  submission_id uuid not null references submissions(id) on delete cascade,
+  campaign_id uuid not null references campaigns(id) on delete cascade,
+  creator_id uuid not null references creator_profiles(id) on delete cascade,
+  channels text[] default '{}',
+  usage rights_usage not null default 'organic',
+  duration_days int default 0,
+  territory text,
+  editing_allowed boolean not null default false,
+  fee numeric not null default 0,
+  expires_at date,
+  status rights_status not null default 'proposed',
+  proposed_by text,
+  proposed_at timestamptz not null default now(),
+  consented_by text,
+  consented_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists rights_agreements_submission_id_idx on rights_agreements (submission_id);
+alter table rights_agreements enable row level security;

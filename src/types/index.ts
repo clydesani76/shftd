@@ -275,6 +275,37 @@ export interface LedgerEntry {
   createdAt: ISODate;
 }
 
+// ── UGC rights / licensing ────────────────────────────────────
+export type RightsStatus =
+  | "proposed"
+  | "accepted"
+  | "declined"
+  | "revoked"
+  | "expired";
+
+// How the content may be used commercially.
+export type RightsUsage = "organic" | "paid" | "both";
+
+export interface RightsAgreement {
+  id: UUID;
+  submissionId: UUID;
+  campaignId: UUID;
+  creatorId: UUID;
+  channels: string[]; // permitted channels
+  usage: RightsUsage; // organic vs paid
+  durationDays: number;
+  territory: string;
+  editingAllowed: boolean; // editing / derivative permissions
+  fee: number; // licensing fee
+  expiresAt?: ISODate;
+  status: RightsStatus;
+  proposedBy?: string;
+  proposedAt: ISODate;
+  consentedBy?: string; // creator who explicitly consented
+  consentedAt?: ISODate;
+  createdAt: ISODate;
+}
+
 // ── Analytics ─────────────────────────────────────────────────
 export interface CampaignMetrics {
   id: UUID;
