@@ -2,6 +2,9 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { decideRights, type ConsentDecision } from "@/lib/db/rights";
+import { getPrincipal } from "@/lib/db/principal";
+import { authorize } from "@/lib/permissions";
+import { rightsOwner } from "@/lib/db/ownership";
 
 // PATCH — creator consents (accept/decline) or revokes rights. Acceptance is
 // explicit consent; on accept a licensing_fee obligation is created idempotently.
@@ -20,9 +23,19 @@ export async function PATCH(
     );
   }
   try {
+    // Authorize: only the creator who owns this deliverable may consent.
+    const principal = await getPrincipal();
+    const owner = await rightsOwner(params.id);
+    const az = authorize(principal, "rights:decide", {
+      creatorId: owner?.creatorId,
+    });
+    if (!az.ok) {
+      return NextResponse.json({ error: az.reason }, { status: az.status });
+    }
+
     const result = await decideRights(params.id, {
       decision: body.decision,
-      consentedBy: body.consentedBy || "creator",
+      consentedBy: body.consentedBy || principal!.userId,
     });
     return NextResponse.json({
       rights: result.rights,

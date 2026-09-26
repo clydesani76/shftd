@@ -2,6 +2,9 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { reviewSubmission, type ReviewDecision } from "@/lib/db/submissions";
+import { getPrincipal } from "@/lib/db/principal";
+import { authorize } from "@/lib/permissions";
+import { submissionOwner } from "@/lib/db/ownership";
 
 // PATCH — brand reviews a deliverable: approve | reject | revise.
 // Approval idempotently creates the payout obligation. The transition is
@@ -22,12 +25,20 @@ export async function PATCH(
     );
   }
   try {
+    // Authorize: only a business/admin of the submission's campaign org.
+    const principal = await getPrincipal();
+    const owner = await submissionOwner(params.id);
+    const az = authorize(principal, "submission:review", {
+      orgId: owner?.orgId,
+    });
+    if (!az.ok) {
+      return NextResponse.json({ error: az.reason }, { status: az.status });
+    }
+
     const result = await reviewSubmission(params.id, {
       decision: body.decision,
       reviewerNote: body.reviewerNote,
-      // NOTE: business auth is not yet wired; the reviewer identity is the
-      // current session's brand user. Recorded for the audit trail.
-      reviewedBy: body.reviewedBy || "brand",
+      reviewedBy: body.reviewedBy || principal!.userId,
     });
     return NextResponse.json({
       submission: result.submission,

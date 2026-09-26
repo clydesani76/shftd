@@ -2,6 +2,9 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { acceptApplication, rejectApplication } from "@/lib/db/applications";
+import { getPrincipal } from "@/lib/db/principal";
+import { authorize } from "@/lib/permissions";
+import { applicationOwner } from "@/lib/db/ownership";
 
 // PATCH — brand accepts a creator (with agreed base pay + bonus) or rejects.
 export async function PATCH(
@@ -15,6 +18,16 @@ export async function PATCH(
   };
 
   try {
+    // Authorize: only a business/admin of the campaign's org.
+    const principal = await getPrincipal();
+    const owner = await applicationOwner(params.id);
+    const az = authorize(principal, "application:decide", {
+      orgId: owner?.orgId,
+    });
+    if (!az.ok) {
+      return NextResponse.json({ error: az.reason }, { status: az.status });
+    }
+
     if (body.action === "reject") {
       await rejectApplication(params.id);
       return NextResponse.json({ ok: true, status: "rejected" });

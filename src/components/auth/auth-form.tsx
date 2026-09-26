@@ -55,6 +55,13 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         });
         if (error) throw error;
       }
+      // Authenticated users land in their own (real) workspace, not the demo.
+      try {
+        window.localStorage.setItem("shftd:workspace", "real");
+        document.cookie = "shftd_ws=real; path=/; max-age=31536000; samesite=lax";
+      } catch {
+        /* ignore storage errors */
+      }
       router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");

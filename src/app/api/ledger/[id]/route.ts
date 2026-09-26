@@ -2,6 +2,8 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { recordVerifiedPayment, resolveDispute } from "@/lib/db/ledger";
+import { getPrincipal } from "@/lib/db/principal";
+import { authorize } from "@/lib/permissions";
 
 // PATCH — admin actions on a payout obligation:
 //   { action: "mark_paid", reference, paidBy }  → record a VERIFIED manual
@@ -24,6 +26,14 @@ export async function PATCH(
   };
 
   try {
+    // Authorize: recording payments / resolving disputes is admin-only.
+    const principal = await getPrincipal();
+    const action = body.action === "resolve_dispute" ? "ledger:resolve" : "ledger:pay";
+    const az = authorize(principal, action);
+    if (!az.ok) {
+      return NextResponse.json({ error: az.reason }, { status: az.status });
+    }
+
     if (body.action === "mark_paid") {
       if (!body.reference?.trim()) {
         return NextResponse.json(
@@ -33,7 +43,7 @@ export async function PATCH(
       }
       await recordVerifiedPayment(params.id, {
         reference: body.reference.trim(),
-        paidBy: body.paidBy || "admin",
+        paidBy: body.paidBy || principal!.userId,
         method: "manual",
       });
       return NextResponse.json({ ok: true, status: "paid" });

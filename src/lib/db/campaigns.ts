@@ -63,15 +63,20 @@ function rowToCampaign(r: CampaignRow): Campaign {
   };
 }
 
-export async function listCampaigns(): Promise<Campaign[]> {
+// Scoped to a single org. When no orgId is given (e.g. local demo without
+// Supabase) it returns the mock set. A real workspace always passes its own
+// org so it never sees another tenant's campaigns.
+export async function listCampaigns(orgId?: string): Promise<Campaign[]> {
   const db = createServiceSupabase();
   if (!db) return MOCK_CAMPAIGNS;
 
-  const { data, error } = await db
+  let query = db
     .from("campaigns")
     .select("*")
     .order("created_at", { ascending: false });
+  if (orgId) query = query.eq("org_id", orgId);
 
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data as CampaignRow[]).map(rowToCampaign);
 }
@@ -114,7 +119,10 @@ export interface NewCampaign {
   performanceBonusPool?: number;
 }
 
-export async function createCampaign(input: NewCampaign): Promise<Campaign> {
+export async function createCampaign(
+  input: NewCampaign,
+  orgId: string = DEMO_ORG_ID,
+): Promise<Campaign> {
   const db = createServiceSupabase();
 
   const budget = input.budget ?? 0;
@@ -147,12 +155,14 @@ export async function createCampaign(input: NewCampaign): Promise<Campaign> {
     };
   }
 
-  await ensureDemoOrg(db);
+  // The demo org is auto-provisioned; a real org already exists (created when
+  // the business first authenticated).
+  if (orgId === DEMO_ORG_ID) await ensureDemoOrg(db);
 
   const { data, error } = await db
     .from("campaigns")
     .insert({
-      org_id: DEMO_ORG_ID,
+      org_id: orgId,
       name: input.name,
       goal: input.goal || null,
       path: input.path,

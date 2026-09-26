@@ -2,6 +2,9 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { listRights, proposeRights, type ProposeRightsInput } from "@/lib/db/rights";
+import { getPrincipal } from "@/lib/db/principal";
+import { authorize } from "@/lib/permissions";
+import { submissionCampaignOwner } from "@/lib/db/ownership";
 
 // GET ?submissionId= — the license history for a deliverable.
 // POST — brand proposes rights (the creator must consent separately).
@@ -31,6 +34,14 @@ export async function POST(req: Request) {
     );
   }
   try {
+    // Authorize: only a business/admin of the deliverable's campaign org.
+    const principal = await getPrincipal();
+    const owner = await submissionCampaignOwner(body.submissionId);
+    const az = authorize(principal, "rights:propose", { orgId: owner?.orgId });
+    if (!az.ok) {
+      return NextResponse.json({ error: az.reason }, { status: az.status });
+    }
+
     const rights = await proposeRights({
       submissionId: body.submissionId,
       channels: body.channels ?? [],
@@ -40,7 +51,7 @@ export async function POST(req: Request) {
       editingAllowed: !!body.editingAllowed,
       fee: Number(body.fee ?? 0),
       expiresAt: body.expiresAt,
-      proposedBy: body.proposedBy || "brand",
+      proposedBy: body.proposedBy || principal!.userId,
     });
     return NextResponse.json({ rights });
   } catch (e) {

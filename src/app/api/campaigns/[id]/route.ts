@@ -8,6 +8,9 @@ import {
   updateCampaignStatus,
 } from "@/lib/db/campaigns";
 import { canTransitionCampaign } from "@/lib/campaign-flow";
+import { getPrincipal } from "@/lib/db/principal";
+import { authorize, ownsOrg } from "@/lib/permissions";
+import { config } from "@/lib/config";
 import type { CampaignStatus } from "@/types";
 
 // Single-campaign API — fetch one, approve its brief, or transition its status.
@@ -20,6 +23,13 @@ export async function GET(
     const campaign = await getCampaign(params.id);
     if (!campaign) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    // A real workspace may only view its OWN campaigns — hide others as 404.
+    if (config.hasSupabase) {
+      const principal = await getPrincipal();
+      if (!ownsOrg(principal, campaign.orgId)) {
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
+      }
     }
     return NextResponse.json({ campaign });
   } catch (e) {
@@ -45,6 +55,17 @@ export async function PATCH(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
+    // Authorize: only a business/admin of THIS campaign's org may act on it.
+    const principal = await getPrincipal();
+    const action =
+      body.action === "approve_brief"
+        ? "campaign:approve_brief"
+        : "campaign:transition";
+    const az = authorize(principal, action, { orgId: campaign.orgId });
+    if (!az.ok) {
+      return NextResponse.json({ error: az.reason }, { status: az.status });
+    }
+
     // Approve the brief (gate for publishing).
     if (body.action === "approve_brief") {
       await approveBrief(params.id);
@@ -56,8 +77,7 @@ export async function PATCH(
     }
 
     // Server-enforced state machine: reject illegal transitions and block
-    // publishing a brief that hasn't been approved. The client-visible role
-    // selector cannot bypass this.
+    // publishing a brief that hasn't been approved.
     const check = canTransitionCampaign(campaign.status, body.status, {
       briefApproved: !!campaign.briefApprovedAt,
     });
