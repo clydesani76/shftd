@@ -135,11 +135,12 @@ export function derivePayoutObligations(
 }
 
 // Idempotent merge: given the obligations that should exist and the set of
-// idempotency keys already recorded, return only the ones that are new.
-export function newObligations(
-  obligations: PayoutObligation[],
+// idempotency keys already recorded, return only the ones that are new. Generic
+// so it works for creator payout obligations and operator-fee obligations alike.
+export function newObligations<T extends { idempotencyKey: string }>(
+  obligations: T[],
   existingKeys: Iterable<string>,
-): PayoutObligation[] {
+): T[] {
   const seen = new Set(existingKeys);
   return obligations.filter((o) => !seen.has(o.idempotencyKey));
 }

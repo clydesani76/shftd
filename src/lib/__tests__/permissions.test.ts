@@ -47,6 +47,31 @@ describe("authorization — ownership (URL alteration cannot cross tenants)", ()
   });
 });
 
+describe("authorization — operator network", () => {
+  const operator: Principal = { userId: "u6", role: "operator", orgId: null, creatorId: null };
+  it("only an admin qualifies operators", () => {
+    expect(authorize(brandA, "operator:review").status).toBe(403);
+    expect(authorize(operator, "operator:review").status).toBe(403);
+    expect(authorize(admin, "operator:review").ok).toBe(true);
+  });
+  it("only a brand/admin invites or revokes engagements, scoped to its org", () => {
+    expect(authorize(operator, "engagement:invite", { orgId: "orgA" }).status).toBe(403);
+    expect(authorize(brandA, "engagement:invite", { orgId: "orgA" }).ok).toBe(true);
+    expect(authorize(brandB, "engagement:invite", { orgId: "orgA" }).status).toBe(403);
+    expect(authorize(brandB, "engagement:revoke", { orgId: "orgA" }).status).toBe(403);
+  });
+  it("only an operator accepts an engagement", () => {
+    expect(authorize(operator, "engagement:accept").ok).toBe(true);
+    expect(authorize(brandA, "engagement:accept").status).toBe(403);
+  });
+  it("only a brand/admin of the owning org approves a proposal (operator cannot)", () => {
+    expect(authorize(operator, "proposal:approve", { orgId: "orgA" }).status).toBe(403);
+    expect(authorize(brandA, "proposal:approve", { orgId: "orgA" }).ok).toBe(true);
+    expect(authorize(brandB, "proposal:approve", { orgId: "orgA" }).status).toBe(403);
+    expect(authorize(admin, "proposal:approve", { orgId: "orgB" }).ok).toBe(true);
+  });
+});
+
 describe("ownsOrg", () => {
   it("matches the principal's own org and admin-any", () => {
     expect(ownsOrg(brandA, "orgA")).toBe(true);

@@ -8,7 +8,7 @@
 // change records that aren't yours.
 // ─────────────────────────────────────────────────────────────
 
-export type Role = "business" | "creator" | "admin";
+export type Role = "business" | "creator" | "admin" | "operator";
 
 export interface Principal {
   userId: string;
@@ -34,7 +34,13 @@ export type Action =
   | "ledger:pay"
   | "ledger:resolve"
   | "rights:propose"
-  | "rights:decide";
+  | "rights:decide"
+  // Operator Network
+  | "operator:review" // admin qualifies/suspends operators
+  | "engagement:invite" // brand invites an operator
+  | "engagement:revoke" // brand revokes/expires an engagement
+  | "engagement:accept" // operator accepts an invitation
+  | "proposal:approve"; // brand/admin approves an operator proposal
 
 // Which roles may perform each action, and how ownership is checked:
 //   "org"     → the resource's org must match the principal's org
@@ -53,6 +59,11 @@ const MATRIX: Record<Action, { roles: Role[]; own: OwnershipDim }> = {
   "ledger:resolve": { roles: ["admin"], own: "none" },
   "rights:propose": { roles: ["business", "admin"], own: "org" },
   "rights:decide": { roles: ["creator"], own: "creator" },
+  "operator:review": { roles: ["admin"], own: "none" },
+  "engagement:invite": { roles: ["business", "admin"], own: "org" },
+  "engagement:revoke": { roles: ["business", "admin"], own: "org" },
+  "engagement:accept": { roles: ["operator"], own: "none" },
+  "proposal:approve": { roles: ["business", "admin"], own: "org" },
 };
 
 export interface AuthzResult {

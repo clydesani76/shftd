@@ -10,6 +10,7 @@ import {
   Database,
   Settings,
   ShieldCheck,
+  Handshake,
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/types";
@@ -47,6 +48,12 @@ export const NAV: NavItem[] = [
   { label: "Campaigns", href: "/campaigns", icon: Megaphone },
   { label: "Creator Marketplace", href: "/marketplace", icon: Users },
   { label: "Payouts", href: "/payouts", icon: Wallet },
+  {
+    label: "Operators",
+    href: "/operators",
+    icon: Handshake,
+    roles: ["business", "operator", "admin"],
+  },
   {
     label: "Analytics",
     href: "/analytics",

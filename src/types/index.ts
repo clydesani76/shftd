@@ -8,7 +8,7 @@ export type UUID = string;
 export type ISODate = string;
 
 // ── Roles & identity ──────────────────────────────────────────
-export type UserRole = "business" | "creator" | "admin";
+export type UserRole = "business" | "creator" | "admin" | "operator";
 
 export interface AppUser {
   id: UUID;
@@ -254,6 +254,7 @@ export type LedgerType =
   | "performance_bonus"
   | "sales_bonus"
   | "licensing_fee"
+  | "operator_fee"
   | "payout";
 
 export type LedgerStatus =

@@ -37,8 +37,15 @@ export async function getPrincipal(): Promise<Principal | null> {
   let orgId: string | null;
 
   if (!existing) {
-    // Clamp: sign-up metadata may only ask for business or creator — never admin.
-    const safeRole: Role = requestedRole === "creator" ? "creator" : "business";
+    // Clamp: sign-up metadata may ask for business, creator or operator — never
+    // admin (admin is DB-granted only). Note: the operator role by itself grants
+    // no access; an operator must be admin-qualified AND brand-engaged to act.
+    const safeRole: Role =
+      requestedRole === "creator"
+        ? "creator"
+        : requestedRole === "operator"
+          ? "operator"
+          : "business";
     await db
       .from("users")
       .insert({ id: user.id, email: user.email ?? "", full_name: fullName, role: safeRole });
@@ -47,6 +54,12 @@ export async function getPrincipal(): Promise<Principal | null> {
   } else {
     dbRole = (existing.role as Role) ?? "business";
     orgId = (existing.org_id as string | null) ?? null;
+  }
+
+  // Operators have no org and no creator profile — their access comes from
+  // brand engagements, resolved per-request.
+  if (dbRole === "operator") {
+    return { userId: user.id, role: "operator", orgId: null, creatorId: null };
   }
 
   if (dbRole === "creator") {

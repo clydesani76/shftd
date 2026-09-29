@@ -17,6 +17,8 @@ import {
 export interface LedgerView extends LedgerEntry {
   creatorName?: string;
   campaignName?: string;
+  operatorName?: string;
+  recipientName?: string; // creator or operator, whichever applies
   paidAt?: string;
   paidBy?: string;
   paymentReference?: string;
@@ -25,8 +27,9 @@ export interface LedgerView extends LedgerEntry {
 
 interface LedgerRow {
   id: string;
-  campaign_id: string;
-  creator_id: string;
+  campaign_id: string | null;
+  creator_id: string | null;
+  operator_user_id: string | null;
   submission_id: string | null;
   type: LedgerType;
   amount: number | null;
@@ -39,21 +42,26 @@ interface LedgerRow {
   created_at: string;
   creator_profiles: { name: string } | null;
   campaigns: { name: string } | null;
+  users: { full_name: string } | null;
 }
 
 function rowToView(r: LedgerRow): LedgerView {
+  const operatorName = r.users?.full_name;
+  const creatorName = r.creator_profiles?.name;
   return {
     id: r.id,
-    campaignId: r.campaign_id,
-    creatorId: r.creator_id,
+    campaignId: r.campaign_id ?? "",
+    creatorId: r.creator_id ?? "",
     submissionId: r.submission_id ?? undefined,
     type: r.type,
     amount: Number(r.amount ?? 0),
     status: r.status,
     note: r.note ?? undefined,
     createdAt: r.created_at,
-    creatorName: r.creator_profiles?.name,
+    creatorName,
     campaignName: r.campaigns?.name,
+    operatorName,
+    recipientName: creatorName ?? operatorName,
     paidAt: r.paid_at ?? undefined,
     paidBy: r.paid_by ?? undefined,
     paymentReference: r.payment_reference ?? undefined,
@@ -67,10 +75,37 @@ export async function listLedger(): Promise<LedgerView[]> {
 
   const { data, error } = await db
     .from("ledger_entries")
-    .select("*, creator_profiles(name), campaigns(name)")
+    .select("*, creator_profiles(name), campaigns(name), users:operator_user_id(full_name)")
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return (data as LedgerRow[]).map(rowToView);
+}
+
+// Idempotently record an operator-fee obligation. Kept a SEPARATE ledger entry
+// (type operator_fee, linked to the engagement + operator) so it never mixes
+// with or reduces creator earnings.
+export async function recordOperatorFee(
+  db: ServiceDb,
+  ctx: { orgId: string; engagementId: string; operatorUserId: string; campaignId?: string | null },
+  obligations: { idempotencyKey: string; type: "operator_fee"; amount: number; status: string }[],
+): Promise<number> {
+  if (obligations.length === 0) return 0;
+  const rows = obligations.map((o) => ({
+    campaign_id: ctx.campaignId ?? null,
+    creator_id: null,
+    operator_user_id: ctx.operatorUserId,
+    engagement_id: ctx.engagementId,
+    type: o.type,
+    amount: o.amount,
+    status: o.status,
+    idempotency_key: o.idempotencyKey,
+  }));
+  const { data, error } = await db
+    .from("ledger_entries")
+    .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true })
+    .select("id");
+  if (error) throw new Error(error.message);
+  return data?.length ?? 0;
 }
 
 type ServiceDb = NonNullable<ReturnType<typeof createServiceSupabase>>;

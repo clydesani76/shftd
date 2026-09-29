@@ -22,6 +22,13 @@ export const config = {
   // Meta Ad Library — pulls a competitor's real, live ads when a token is set.
   hasMetaAds,
   hasStripe: !!process.env.STRIPE_SECRET_KEY,
+  // Campaign Operator Network — surfaces operator/engagement/proposal UX.
+  // On by default; approving a proposal records + audits the decision but does
+  // NOT auto-execute the underlying consequential change in this first release.
+  operatorNetwork: process.env.NEXT_PUBLIC_OPERATOR_NETWORK !== "false",
+  // Performance-based operator compensation is intentionally gated OFF for the
+  // first release (fixed / milestone fees only).
+  operatorPerformanceComp: process.env.NEXT_PUBLIC_OPERATOR_PERF_COMP === "true",
   aiModel:
     process.env.SHFTD_AI_MODEL ||
     (hasAnthropic ? "claude-sonnet-4-6" : "gpt-4o-mini"),
