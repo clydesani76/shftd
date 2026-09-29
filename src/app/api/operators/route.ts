@@ -7,11 +7,13 @@ import {
   applyAsOperator,
   getOperatorProfile,
   listOperators,
+  listOperatorDirectory,
   type OperatorApplication,
 } from "@/lib/db/operators";
 import type { QualificationStatus } from "@/lib/operator-flow";
 
-// GET — admins list operators (optionally by status); anyone else gets their
+// GET — admins list operators (optionally by status); a brand can browse the
+// directory of approved operators (?view=directory); anyone else gets their
 // own profile.
 export async function GET(req: Request) {
   const principal = await getPrincipal();
@@ -19,8 +21,15 @@ export async function GET(req: Request) {
     return NextResponse.json({ operators: [], profile: null }, { status: 200 });
   }
   try {
+    const { searchParams } = new URL(req.url);
+    // Brands (and admins) browsing the directory of approved operators.
+    if (
+      searchParams.get("view") === "directory" &&
+      (principal.role === "business" || principal.role === "admin")
+    ) {
+      return NextResponse.json({ directory: await listOperatorDirectory() });
+    }
     if (principal.role === "admin") {
-      const { searchParams } = new URL(req.url);
       const status = searchParams.get("status") as QualificationStatus | null;
       const operators = await listOperators(status ?? undefined);
       return NextResponse.json({ operators });

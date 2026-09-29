@@ -472,9 +472,24 @@ function BrandView() {
   );
 }
 
+interface DirectoryEntry {
+  userId: string;
+  displayName: string;
+  specialties: string[];
+  portfolioUrl?: string;
+  verifiedOutcomes: number;
+  repeatBrands: number;
+}
+
 function InviteCard() {
   const qc = useQueryClient();
+  const { data: dir } = useQuery({
+    queryKey: ["operator-directory"],
+    queryFn: () => getJSON<{ directory: DirectoryEntry[] }>("/api/operators?view=directory"),
+  });
+  const directory = dir?.directory ?? [];
   const [operatorUserId, setOperatorUserId] = useState("");
+  const selected = directory.find((d) => d.userId === operatorUserId);
   const [scopeNote, setScopeNote] = useState("");
   const [campaignIds, setCampaignIds] = useState("");
   const [serviceFee, setServiceFee] = useState("");
@@ -513,9 +528,38 @@ function InviteCard() {
         </p>
       </CardHeader>
       <CardContent className="space-y-3">
-        <Field label="Operator user ID">
-          <input className={inputCls} value={operatorUserId} onChange={(e) => setOperatorUserId(e.target.value)} placeholder="approved operator's user id" />
+        <Field label="Operator">
+          {directory.length === 0 ? (
+            <p className="rounded border border-slate-200 bg-ink-800/50 px-2 py-2 text-xs text-slate-500">
+              No approved operators are available yet. Operators appear here once
+              an admin approves their application.
+            </p>
+          ) : (
+            <select className={inputCls} value={operatorUserId} onChange={(e) => setOperatorUserId(e.target.value)}>
+              <option value="">Select an approved operator…</option>
+              {directory.map((d) => (
+                <option key={d.userId} value={d.userId}>
+                  {d.displayName}
+                  {d.specialties.length > 0 ? ` — ${d.specialties.join(", ")}` : ""}
+                </option>
+              ))}
+            </select>
+          )}
         </Field>
+        {selected && (
+          <div className="rounded-lg border border-slate-200 bg-ink-800/50 p-3 text-xs text-slate-500">
+            <p className="font-medium text-slate-900">{selected.displayName}</p>
+            <p className="mt-0.5">
+              {selected.verifiedOutcomes} verified outcomes · {selected.repeatBrands} repeat brands
+              {selected.specialties.length > 0 ? ` · ${selected.specialties.join(", ")}` : ""}
+            </p>
+            {selected.portfolioUrl && (
+              <a href={selected.portfolioUrl} target="_blank" rel="noreferrer" className="mt-0.5 inline-block text-electric-600 hover:underline">
+                View portfolio ↗
+              </a>
+            )}
+          </div>
+        )}
         <Field label="Scope note">
           <input className={inputCls} value={scopeNote} onChange={(e) => setScopeNote(e.target.value)} placeholder="e.g. Q4 TikTok launch — drafting + creator shortlist only" />
         </Field>

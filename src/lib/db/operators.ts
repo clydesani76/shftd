@@ -132,6 +132,30 @@ export async function listOperators(
   return (data as Row[]).map(toProfile);
 }
 
+// Public-safe operator directory entry — what a brand may see when choosing who
+// to engage. Deliberately omits private review notes and conflict disclosures.
+export interface OperatorDirectoryEntry {
+  userId: string;
+  displayName: string;
+  specialties: string[];
+  portfolioUrl?: string;
+  verifiedOutcomes: number;
+  repeatBrands: number;
+}
+
+// The directory brands browse: approved operators only, public fields only.
+export async function listOperatorDirectory(): Promise<OperatorDirectoryEntry[]> {
+  const approved = await listOperators("approved");
+  return approved.map((o) => ({
+    userId: o.userId,
+    displayName: o.displayName,
+    specialties: o.specialties,
+    portfolioUrl: o.portfolioUrl,
+    verifiedOutcomes: o.verifiedOutcomes,
+    repeatBrands: o.repeatBrands,
+  }));
+}
+
 // Admin qualification decision. Validates the transition and records the actor.
 export async function reviewOperator(
   id: string,
