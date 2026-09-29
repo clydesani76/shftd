@@ -8,12 +8,14 @@ export default function SignupPage() {
       <div className="pointer-events-none absolute inset-0 bg-radial-glow" />
       <div className="relative z-10 w-full max-w-md">
         <div className="mb-8 flex justify-center">
-          <Logo showTagline />
+          <Link href="/" aria-label="SHFTD home">
+            <Logo showTagline />
+          </Link>
         </div>
         <AuthForm mode="signup" />
-        <p className="mt-6 text-center text-sm text-slate-400">
+        <p className="mt-6 text-center text-sm text-slate-500">
           Already have an account?{" "}
-          <Link href="/login" className="text-electric-300 hover:text-electric-200">
+          <Link href="/login" className="text-electric-600 hover:text-electric-700">
             Sign in
           </Link>
         </p>

@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageHeader, SectionLabel } from "@/components/ui/misc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getCampaign, getMemory } from "@/lib/data";
+import { getCampaign } from "@/lib/data";
+import { useMemoryData } from "@/lib/workspace-data";
 import { cn, timeAgo } from "@/lib/utils";
 import type { BrandMemoryNote, MemoryKind } from "@/types";
 import {
@@ -31,7 +33,28 @@ const KIND_META: Record<MemoryKind, { icon: React.ComponentType<{ className?: st
 };
 
 export default function MemoryPage() {
-  const [memory] = useState<BrandMemoryNote[]>(getMemory());
+  const queryClient = useQueryClient();
+  const [showAdd, setShowAdd] = useState(false);
+
+  // Brand learnings: demo shows the Nova sample set; a real workspace shows
+  // only learnings tied to its own campaigns (from /api/memory).
+  const { data: memory, isDemo } = useMemoryData();
+
+  const addMutation = useMutation({
+    mutationFn: async (note: NewLearning) => {
+      const res = await fetch("/api/memory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(note),
+      });
+      if (!res.ok) throw new Error("Failed to add learning");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["memory"] });
+      setShowAdd(false);
+    },
+  });
 
   const wins = memory.filter((m) => m.outcome === "win").length;
   const losses = memory.filter((m) => m.outcome === "loss").length;
@@ -47,29 +70,39 @@ export default function MemoryPage() {
         title="Marketing Memory"
         subtitle="SHFTD's long-term advantage — every win and loss makes the next recommendation smarter."
         actions={
-          <Button variant="outline">
-            <Plus className="h-4 w-4" /> Add learning
-          </Button>
+          isDemo ? undefined : (
+            <Button variant="outline" onClick={() => setShowAdd((s) => !s)}>
+              <Plus className="h-4 w-4" /> Add learning
+            </Button>
+          )
         }
       />
 
+      {!isDemo && showAdd && (
+        <AddLearningForm
+          onAdd={(n) => addMutation.mutate(n)}
+          onCancel={() => setShowAdd(false)}
+          pending={addMutation.isPending}
+        />
+      )}
+
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <Card className="p-4">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Learnings stored</p>
-          <p className="mt-1 text-2xl font-semibold text-white">{memory.length}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">Learnings stored</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">{memory.length}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Validated wins</p>
-          <p className="mt-1 text-2xl font-semibold text-signal-green">{wins}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">Validated wins</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-emerald-600">{wins}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Logged failures</p>
-          <p className="mt-1 text-2xl font-semibold text-signal-red">{losses}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">Logged failures</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-rose-600">{losses}</p>
         </Card>
       </div>
 
-      <div className="rounded-xl border border-electric-500/20 bg-electric-500/5 p-4 text-sm text-slate-300">
-        <span className="font-medium text-electric-200">How this is used:</span>{" "}
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+        <span className="font-medium text-electric-700">How this is used:</span>{" "}
         The Strategy Engine reads these notes when generating recommendations —
         reusing proven hooks, avoiding failed angles, and favoring the creator
         types and platforms that have worked for this brand.
@@ -79,7 +112,7 @@ export default function MemoryPage() {
         {/* Timeline */}
         <div className="lg:col-span-2">
           <SectionLabel>Memory timeline</SectionLabel>
-          <div className="relative space-y-4 border-l border-white/10 pl-6">
+          <div className="relative space-y-4 border-l border-slate-200 pl-6">
             {memory.map((m) => {
               const meta = KIND_META[m.kind];
               const Icon = meta.icon;
@@ -87,12 +120,12 @@ export default function MemoryPage() {
                 <div key={m.id} className="relative">
                   <span
                     className={cn(
-                      "absolute -left-[31px] flex h-6 w-6 items-center justify-center rounded-full border bg-ink-800",
+                      "absolute -left-[31px] flex h-6 w-6 items-center justify-center rounded-md border bg-ink-700",
                       m.outcome === "win"
-                        ? "border-signal-green/40 text-signal-green"
+                        ? "border-signal-green/40 text-emerald-600"
                         : m.outcome === "loss"
-                          ? "border-signal-red/40 text-signal-red"
-                          : "border-white/15 text-slate-400",
+                          ? "border-signal-red/40 text-rose-600"
+                          : "border-slate-300 text-slate-500",
                     )}
                   >
                     <Icon className="h-3 w-3" />
@@ -102,7 +135,7 @@ export default function MemoryPage() {
                       <Badge>{meta.label}</Badge>
                       <OutcomeBadge outcome={m.outcome} />
                     </div>
-                    <p className="text-sm text-slate-200">{m.insight}</p>
+                    <p className="text-sm text-slate-700">{m.insight}</p>
                     <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
                       {m.campaignId && <span>{getCampaign(m.campaignId)?.name}</span>}
                       {m.metricRef && (
@@ -126,10 +159,10 @@ export default function MemoryPage() {
               const Icon = meta.icon;
               return (
                 <Card key={kind} className="p-4">
-                  <p className="flex items-center gap-2 text-sm font-medium text-white">
-                    <Icon className="h-4 w-4 text-electric-300" /> {meta.label}
+                  <p className="flex items-center gap-2 text-sm font-medium text-slate-900">
+                    <Icon className="h-4 w-4 text-electric-600" /> {meta.label}
                   </p>
-                  <ul className="mt-2 space-y-1.5 text-xs text-slate-400">
+                  <ul className="mt-2 space-y-1.5 text-xs text-slate-500">
                     {notes.map((n) => (
                       <li key={n.id} className="line-clamp-2">
                         • {n.insight}
@@ -163,5 +196,109 @@ function OutcomeBadge({ outcome }: { outcome: BrandMemoryNote["outcome"] }) {
     <Badge>
       <Minus className="h-3 w-3" /> Neutral
     </Badge>
+  );
+}
+
+interface NewLearning {
+  kind: MemoryKind;
+  insight: string;
+  outcome: BrandMemoryNote["outcome"];
+  metricRef?: string;
+}
+
+function AddLearningForm({
+  onAdd,
+  onCancel,
+  pending,
+}: {
+  onAdd: (n: NewLearning) => void;
+  onCancel: () => void;
+  pending?: boolean;
+}) {
+  const [kind, setKind] = useState<MemoryKind>("winning_hook");
+  const [outcome, setOutcome] = useState<BrandMemoryNote["outcome"]>("win");
+  const [insight, setInsight] = useState("");
+  const [metricRef, setMetricRef] = useState("");
+
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Add a learning</CardTitle>
+        <p className="text-sm text-slate-500">
+          Capture what worked or failed. SHFTD uses these to bias future
+          strategy recommendations.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-600">
+              Type
+            </label>
+            <select
+              value={kind}
+              onChange={(e) => setKind(e.target.value as MemoryKind)}
+              className="h-10 w-full rounded-lg border border-slate-200 bg-ink-700/60 px-3 text-sm text-slate-900 ring-focus"
+            >
+              {(Object.keys(KIND_META) as MemoryKind[]).map((k) => (
+                <option key={k} value={k}>
+                  {KIND_META[k].label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-600">
+              Outcome
+            </label>
+            <select
+              value={outcome}
+              onChange={(e) =>
+                setOutcome(e.target.value as BrandMemoryNote["outcome"])
+              }
+              className="h-10 w-full rounded-lg border border-slate-200 bg-ink-700/60 px-3 text-sm text-slate-900 ring-focus"
+            >
+              <option value="win">Win</option>
+              <option value="loss">Loss</option>
+              <option value="neutral">Neutral</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-slate-600">
+            Insight
+          </label>
+          <textarea
+            value={insight}
+            onChange={(e) => setInsight(e.target.value)}
+            rows={3}
+            placeholder="e.g. Honest first-person hooks outperformed polished demos by ~40%."
+            className="w-full rounded-lg border border-slate-200 bg-ink-700/60 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 ring-focus"
+          />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-slate-600">
+            Metric reference (optional)
+          </label>
+          <input
+            value={metricRef}
+            onChange={(e) => setMetricRef(e.target.value)}
+            placeholder="e.g. ROAS 3.73"
+            className="h-10 w-full rounded-lg border border-slate-200 bg-ink-700/60 px-3 text-sm text-slate-900 placeholder:text-slate-500 ring-focus"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            disabled={!insight || pending}
+            onClick={() => onAdd({ kind, outcome, insight, metricRef })}
+          >
+            {pending ? "Saving…" : "Save learning"}
+          </Button>
+          <Button variant="ghost" onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

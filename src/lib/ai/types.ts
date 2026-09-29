@@ -68,10 +68,80 @@ export interface GenerateCopyInput {
   count?: number;
 }
 
+// ── Deep competitor analysis ──────────────────────────────────
+// A measured, multi-dimensional read of a single competitor across their
+// website, search/SEO, social platforms, and campaign activity — plus the
+// campaigns SHFTD recommends to out-compete them.
+
+export interface CompetitorScoreItem {
+  dimension: string; // e.g. "Website & UX", "Google / SEO", "Social", "Campaigns", "Offer & Positioning"
+  score: number; // 0-100
+  note: string;
+}
+
+export interface CompetitorChannelAssessment {
+  channel: string; // "Instagram" | "TikTok" | "Google Search" | "YouTube" | "Email" | ...
+  presence: "none" | "weak" | "moderate" | "strong" | "unknown";
+  strength: number; // 0-100 (estimated)
+  assessment: string;
+}
+
+export interface CompetitorCampaignType {
+  type: string; // "UGC / creator", "Paid search", "Email nurture", "Influencer", ...
+  description: string;
+  intensity: "low" | "medium" | "high";
+}
+
+// A real ad pulled from the Meta Ad Library (not AI-generated).
+export interface CompetitorLiveAd {
+  id: string;
+  pageName: string;
+  snapshotUrl: string; // link to the ad in Meta's Ad Library
+  body: string;
+  title?: string;
+  startDate?: string;
+  platforms: string[]; // e.g. ["facebook", "instagram"]
+}
+
+export interface CompetitorAnalysis {
+  brandName: string;
+  summary: string;
+  threatLevel: RiskLevel; // low | medium | high
+  overallScore: number; // 0-100 overall competitive strength
+  scorecard: CompetitorScoreItem[];
+  channels: CompetitorChannelAssessment[];
+  campaignTypes: CompetitorCampaignType[];
+  strengths: string[];
+  gaps: string[]; // weaknesses / white space to exploit
+  recommendedCampaigns: GeneratedStrategy[]; // proven + original, to out-compete
+  sources: string[]; // what informed the read (e.g. "Live website fetch")
+  disclaimer: string; // honesty note about estimated vs. measured signals
+  // REAL signals scraped from the competitor's live site (not AI-generated).
+  discovered?: {
+    socialLinks: { platform: string; url: string }[];
+    detectedTech: string[];
+    siteUrl: string;
+  };
+  // REAL ads pulled from the Meta Ad Library (not AI-generated).
+  liveAds?: CompetitorLiveAd[];
+}
+
+export interface AnalyzeCompetitorInput {
+  brandName: string;
+  domain?: string;
+  socialHandle?: string;
+  industry: string;
+  ourBrand: string;
+  ourAudience: string;
+  // Real page text fetched server-side (title, description, visible copy).
+  siteContext?: string;
+}
+
 // The single interface every AI provider must implement.
 export interface AIProvider {
   readonly name: string;
   analyzeInsights(input: AnalyzeInsightsInput): Promise<GeneratedInsight[]>;
   generateStrategies(input: GenerateStrategiesInput): Promise<GeneratedStrategy[]>;
   generateCopy(input: GenerateCopyInput): Promise<GeneratedCopy[]>;
+  analyzeCompetitor(input: AnalyzeCompetitorInput): Promise<CompetitorAnalysis>;
 }

@@ -18,19 +18,20 @@ import {
   YAxis,
 } from "recharts";
 
-const AXIS = { stroke: "#475569", fontSize: 11 };
-const GRID = "#1e2336";
+const AXIS = { stroke: "#71717a", fontSize: 11 };
+const GRID = "#2b2b31";
 const TOOLTIP_STYLE = {
-  background: "#10131f",
-  border: "1px solid rgba(255,255,255,0.1)",
+  background: "#161618",
+  border: "1px solid #2b2b31",
   borderRadius: 8,
   fontSize: 12,
-  color: "#e2e8f0",
+  color: "#f5f5f6",
+  boxShadow: "0 8px 24px -12px rgba(0,0,0,0.6)",
 };
 
-const ELECTRIC = "#6c5ce7";
-const CYBER = "#00e0d1";
-export const CHART_COLORS = [ELECTRIC, CYBER, "#27e6a4", "#ffb454", "#ff5a7a"];
+const ELECTRIC = "#eddeb7";
+const CYBER = "#cbd5e1";
+export const CHART_COLORS = [ELECTRIC, CYBER, "#a1a1aa", "#f0e6c8", "#8a8f99"];
 
 export function TrendArea({
   data,
@@ -126,6 +127,40 @@ export function SimpleBars({
         <YAxis {...AXIS} tickLine={false} axisLine={false} />
         <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
         <Bar dataKey={dataKey} fill={color} radius={[4, 4, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+export function CompareBars({
+  data,
+  series,
+  xKey = "label",
+  height = 260,
+}: {
+  data: Record<string, unknown>[];
+  series: { key: string; color: string; name: string }[];
+  xKey?: string;
+  height?: number;
+}) {
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <BarChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+        <CartesianGrid stroke={GRID} vertical={false} />
+        <XAxis dataKey={xKey} {...AXIS} tickLine={false} axisLine={false} />
+        <YAxis {...AXIS} tickLine={false} axisLine={false} />
+        <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: "rgba(108,92,231,0.05)" }} />
+        <Legend wrapperStyle={{ fontSize: 12 }} />
+        {series.map((s) => (
+          <Bar
+            key={s.key}
+            dataKey={s.key}
+            name={s.name}
+            fill={s.color}
+            radius={[4, 4, 0, 0]}
+            maxBarSize={44}
+          />
+        ))}
       </BarChart>
     </ResponsiveContainer>
   );

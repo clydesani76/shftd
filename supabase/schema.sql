@@ -11,7 +11,7 @@
 -- and are linked to auth.users via id.
 
 -- ── Enums ───────────────────────────────────────────────────────
-create type user_role as enum ('business', 'creator', 'admin');
+create type user_role as enum ('business', 'creator', 'admin', 'operator');
 create type creator_role as enum ('igniter', 'amplifier', 'closer');
 create type evidence_type as enum ('ad','caption','landing_page','campaign','offer','hook','cta');
 create type insight_category as enum ('winning_pattern','overused_angle','white_space');
@@ -21,8 +21,10 @@ create type campaign_status as enum ('draft','published','live','review','comple
 create type application_status as enum ('applied','invited','accepted','rejected');
 create type submission_status as enum ('submitted','approved','rejected','revision_requested');
 create type copy_type as enum ('hook','headline','caption','cta','script','landing_page','ad');
-create type ledger_type as enum ('base_pay','performance_bonus','sales_bonus','payout');
-create type ledger_status as enum ('pending','approved','paid');
+create type ledger_type as enum ('base_pay','performance_bonus','sales_bonus','licensing_fee','operator_fee','payout');
+create type ledger_status as enum ('pending','approved','paid','failed','disputed');
+create type rights_status as enum ('proposed','accepted','declined','revoked','expired');
+create type rights_usage as enum ('organic','paid','both');
 create type memory_kind as enum ('winning_hook','failed_angle','best_creator_type','best_platform','best_offer','general');
 create type memory_outcome as enum ('win','loss','neutral');
 
@@ -150,6 +152,8 @@ create table campaigns (
   budget numeric default 0,
   base_pay_pool numeric default 0,
   performance_bonus_pool numeric default 0,
+  -- Set when the brand approves the brief; required before publishing.
+  brief_approved_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -170,6 +174,9 @@ create table campaign_applications (
   role creator_role not null,
   status application_status not null default 'applied',
   pitch text,
+  -- Agreed terms, set by the brand when a creator is accepted.
+  agreed_base_pay numeric default 0,
+  agreed_bonus numeric default 0,
   applied_at timestamptz not null default now()
 );
 
@@ -180,8 +187,12 @@ create table submissions (
   content_url text,
   file_name text,
   note text,
+  publication_date date,
+  evidence_url text,
   status submission_status not null default 'submitted',
   reviewer_note text,
+  reviewed_by text,
+  reviewed_at timestamptz,
   submitted_at timestamptz not null default now()
 );
 
@@ -205,15 +216,189 @@ create table campaign_saved_copy (
   saved_at timestamptz not null default now()
 );
 
+-- Deep competitor analyses (Competitive Intelligence). The full measured
+-- report is stored as JSON so the UI can re-render it without recomputing.
+create table competitor_analyses (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references orgs(id) on delete cascade,
+  competitor_id uuid references ci_competitors(id) on delete cascade,
+  brand_name text not null,
+  analysis jsonb not null,
+  created_at timestamptz not null default now()
+);
+
+-- AI-generated images (Copy Studio). The file bytes live in Supabase Storage
+-- (bucket `campaign-images`); this row stores the public URL + metadata.
+create table campaign_assets (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references orgs(id) on delete cascade,
+  campaign_id uuid references campaigns(id) on delete set null,
+  url text not null,
+  prompt text,
+  size text,
+  provider text,
+  created_at timestamptz not null default now()
+);
+
+-- ── Campaign Operator Network ────────────────────────────────────
+-- Operators (agencies/consultants/managers) manage brand campaigns under a
+-- brand-accepted engagement with explicit, scoped permissions. Statuses are
+-- text and validated in app code (src/lib/operator-flow.ts).
+
+-- Operator qualification profile. Self-reported fields are kept separate from
+-- admin-verified counts so the UI never conflates a claim with a verified fact.
+create table operator_profiles (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
+  display_name text not null,
+  business_info text,
+  specialties text[] default '{}',
+  portfolio_url text,
+  -- self-reported disclosures
+  service_fee_note text,
+  conflicts_note text,
+  -- admin-verified evidence (never self-editable)
+  verified_outcomes int default 0,
+  repeat_brands int default 0,
+  payment_reliability int, -- 0-100, admin/verified
+  status text not null default 'applicant', -- applicant|under_review|approved|suspended
+  review_note text,
+  reviewed_by text,
+  created_at timestamptz not null default now()
+);
+create unique index on operator_profiles (user_id);
+
+create table brand_operator_engagements (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references orgs(id) on delete cascade,
+  operator_user_id uuid not null references users(id) on delete cascade,
+  scope_note text,
+  campaign_ids uuid[] default '{}',
+  permissions text[] default '{}',
+  service_fee numeric not null default 0,
+  fee_model text not null default 'fixed', -- fixed|milestone|performance(flagged)
+  start_at timestamptz,
+  expires_at timestamptz,
+  status text not null default 'proposed', -- proposed|active|expired|revoked|completed
+  agreement_version int not null default 1,
+  proposed_by text,
+  accepted_at timestamptz,
+  revoked_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index on brand_operator_engagements (org_id);
+create index on brand_operator_engagements (operator_user_id);
+
+-- Operator proposals route consequential changes into the approval system.
+create table campaign_proposals (
+  id uuid primary key default gen_random_uuid(),
+  engagement_id uuid not null references brand_operator_engagements(id) on delete cascade,
+  campaign_id uuid references campaigns(id) on delete set null,
+  org_id uuid not null references orgs(id) on delete cascade,
+  type text not null, -- brief_draft|creator_shortlist|budget_change|publish_campaign|...
+  title text not null,
+  content jsonb not null default '{}',
+  version int not null default 1,
+  content_hash text,
+  status text not null default 'draft', -- draft|submitted|approved|rejected|withdrawn
+  financial_impact numeric default 0,
+  rights_impact text,
+  created_by text not null, -- operator user id
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index on campaign_proposals (org_id);
+create index on campaign_proposals (engagement_id);
+
+-- Approval bound to the EXACT proposal version. Editing bumps the version so a
+-- stale approval no longer applies.
+create table proposal_approvals (
+  id uuid primary key default gen_random_uuid(),
+  proposal_id uuid not null references campaign_proposals(id) on delete cascade,
+  approved_version int not null,
+  decision text not null, -- approved|rejected
+  approved_by text not null,
+  note text,
+  created_at timestamptz not null default now()
+);
+
+-- Append-only audit trail. No update/delete policy is granted.
+create table audit_events (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid references orgs(id) on delete set null,
+  actor_user_id text,
+  action text not null,
+  subject_type text,
+  subject_id text,
+  data jsonb default '{}',
+  created_at timestamptz not null default now()
+);
+create index on audit_events (org_id);
+create index on audit_events (subject_type, subject_id);
+
+-- Risk signals are observations for review — kept separate from final findings
+-- and never auto-penalizing on a single signal.
+create table risk_signals (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid references orgs(id) on delete set null,
+  kind text not null, -- self_referral|duplicate_attribution|circular_spend|...
+  severity text not null default 'low', -- low|medium|high
+  subject_type text,
+  subject_id text,
+  evidence jsonb default '{}',
+  status text not null default 'open', -- open|reviewing|dismissed|confirmed
+  created_at timestamptz not null default now()
+);
+create index on risk_signals (org_id);
+
+-- ── UGC rights / licensing ──────────────────────────────────────
+-- One agreement per proposal, tied to a specific deliverable. Expanding rights
+-- means a NEW row (a new proposal the creator must consent to again); the full
+-- set of rows is the license history. Rights are granted only on explicit
+-- creator consent (status = 'accepted' with consented_at set).
+create table rights_agreements (
+  id uuid primary key default gen_random_uuid(),
+  submission_id uuid not null references submissions(id) on delete cascade,
+  campaign_id uuid not null references campaigns(id) on delete cascade,
+  creator_id uuid not null references creator_profiles(id) on delete cascade,
+  channels text[] default '{}',
+  usage rights_usage not null default 'organic',
+  duration_days int default 0,
+  territory text,
+  editing_allowed boolean not null default false,
+  fee numeric not null default 0,
+  expires_at date,
+  status rights_status not null default 'proposed',
+  proposed_by text,
+  proposed_at timestamptz not null default now(),
+  consented_by text,
+  consented_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
 -- ── Payouts & ledger ────────────────────────────────────────────
 create table ledger_entries (
   id uuid primary key default gen_random_uuid(),
-  campaign_id uuid not null references campaigns(id) on delete cascade,
-  creator_id uuid not null references creator_profiles(id) on delete cascade,
+  -- Nullable so the ledger can hold both creator obligations and operator fees.
+  campaign_id uuid references campaigns(id) on delete cascade,
+  creator_id uuid references creator_profiles(id) on delete cascade,
+  operator_user_id uuid references users(id) on delete set null,
+  engagement_id uuid references brand_operator_engagements(id) on delete set null,
+  submission_id uuid references submissions(id) on delete set null,
   type ledger_type not null,
   amount numeric not null default 0,
   status ledger_status not null default 'pending',
   note text,
+  -- Deterministic key ("<submission>:<type>") so approving the same
+  -- deliverable twice never creates a duplicate payout obligation.
+  idempotency_key text unique,
+  -- Verified payment record. An obligation only becomes 'paid' when a payment
+  -- provider confirms it or an authorized admin records a verified manual
+  -- payment WITH a reference — never simulated.
+  paid_at timestamptz,
+  paid_by text,
+  payment_reference text,
+  payment_method text, -- 'manual' | 'stripe' | ...
   created_at timestamptz not null default now()
 );
 
@@ -254,7 +439,11 @@ create index on campaigns (org_id);
 create index on campaigns (status);
 create index on campaign_applications (campaign_id);
 create index on submissions (campaign_id);
+create index on rights_agreements (submission_id);
 create index on copy_variants (org_id);
+create index on campaign_assets (org_id);
+create index on campaign_assets (campaign_id);
+create index on competitor_analyses (competitor_id);
 create index on ledger_entries (campaign_id);
 create index on campaign_metrics (campaign_id);
 create index on brand_memory_notes (org_id);
@@ -280,8 +469,17 @@ alter table campaigns enable row level security;
 alter table campaign_marketplace enable row level security;
 alter table campaign_applications enable row level security;
 alter table submissions enable row level security;
+alter table rights_agreements enable row level security;
+alter table operator_profiles enable row level security;
+alter table brand_operator_engagements enable row level security;
+alter table campaign_proposals enable row level security;
+alter table proposal_approvals enable row level security;
+alter table audit_events enable row level security;
+alter table risk_signals enable row level security;
 alter table copy_variants enable row level security;
 alter table campaign_saved_copy enable row level security;
+alter table campaign_assets enable row level security;
+alter table competitor_analyses enable row level security;
 alter table ledger_entries enable row level security;
 alter table campaign_metrics enable row level security;
 alter table brand_memory_notes enable row level security;
@@ -303,6 +501,8 @@ create policy "org rw insights" on ci_insights for all using (org_id = current_o
 create policy "org rw recs" on strategy_recommendations for all using (org_id = current_org_id()) with check (org_id = current_org_id());
 create policy "org rw campaigns" on campaigns for all using (org_id = current_org_id()) with check (org_id = current_org_id());
 create policy "org rw copy" on copy_variants for all using (org_id = current_org_id()) with check (org_id = current_org_id());
+create policy "org rw assets" on campaign_assets for all using (org_id = current_org_id()) with check (org_id = current_org_id());
+create policy "org rw analyses" on competitor_analyses for all using (org_id = current_org_id()) with check (org_id = current_org_id());
 create policy "org rw memory" on brand_memory_notes for all using (org_id = current_org_id()) with check (org_id = current_org_id());
 create policy "org rw biz profile" on business_profiles for all using (org_id = current_org_id()) with check (org_id = current_org_id());
 
@@ -316,6 +516,194 @@ create policy "auth read applications" on campaign_applications for select using
 create policy "auth write applications" on campaign_applications for insert with check (auth.uid() is not null);
 create policy "auth read submissions" on submissions for select using (auth.uid() is not null);
 create policy "auth write submissions" on submissions for insert with check (auth.uid() is not null);
+create policy "auth read rights" on rights_agreements for select using (auth.uid() is not null);
+create policy "auth write rights" on rights_agreements for insert with check (auth.uid() is not null);
+create policy "auth update rights" on rights_agreements for update using (auth.uid() is not null);
+
+-- Operator Network. Writes go through the service role (which bypasses RLS);
+-- the server enforces role/scope/ownership (src/lib/permissions.ts +
+-- operator-flow.ts). These starter policies keep the anon client scoped behind
+-- auth. Harden to per-org/ownership before production.
+create policy "self read operator profile" on operator_profiles for select using (user_id = auth.uid());
+create policy "self write operator profile" on operator_profiles for insert with check (user_id = auth.uid());
+create policy "org read engagements" on brand_operator_engagements for select using (org_id = current_org_id() or operator_user_id = auth.uid());
+create policy "org read proposals" on campaign_proposals for select using (org_id = current_org_id());
+create policy "auth read approvals" on proposal_approvals for select using (auth.uid() is not null);
+create policy "org read audit" on audit_events for select using (org_id = current_org_id());
+create policy "org read risk" on risk_signals for select using (org_id = current_org_id());
+-- audit_events is append-only: no update/delete policy is defined, so RLS
+-- denies both to non-service clients.
 create policy "auth read creators" on creator_profiles for select using (auth.uid() is not null);
 create policy "auth read metrics" on campaign_metrics for select using (auth.uid() is not null);
 create policy "auth read ledger" on ledger_entries for select using (auth.uid() is not null);
+
+-- ════════════════════════════════════════════════════════════════
+-- Storage
+-- Copy Studio images are uploaded to a public bucket named
+-- `campaign-images`. The app auto-creates it via the service role on
+-- first save, but you can also create it manually in the Supabase
+-- dashboard (Storage → New bucket → name `campaign-images`, Public).
+-- ════════════════════════════════════════════════════════════════
+insert into storage.buckets (id, name, public)
+values ('campaign-images', 'campaign-images', true)
+on conflict (id) do nothing;
+
+-- ════════════════════════════════════════════════════════════════
+-- Incremental migrations (safe to run on an existing database)
+-- Run these in the Supabase SQL editor if your DB predates the
+-- submission→payout chain. Each is idempotent.
+-- ════════════════════════════════════════════════════════════════
+-- Enum additions (ALTER TYPE ... ADD VALUE cannot run inside a txn block;
+-- run these statements individually if your editor wraps them).
+alter type ledger_status add value if not exists 'failed';
+alter type ledger_status add value if not exists 'disputed';
+alter type ledger_type add value if not exists 'licensing_fee';
+
+alter table campaigns add column if not exists brief_approved_at timestamptz;
+
+alter table campaign_applications add column if not exists agreed_base_pay numeric default 0;
+alter table campaign_applications add column if not exists agreed_bonus numeric default 0;
+
+alter table submissions add column if not exists publication_date date;
+alter table submissions add column if not exists evidence_url text;
+alter table submissions add column if not exists reviewed_by text;
+alter table submissions add column if not exists reviewed_at timestamptz;
+
+alter table ledger_entries add column if not exists submission_id uuid references submissions(id) on delete set null;
+alter table ledger_entries add column if not exists idempotency_key text;
+create unique index if not exists ledger_entries_idempotency_key_uq on ledger_entries (idempotency_key);
+
+-- Verified-payment fields on the ledger (part (a)).
+alter table ledger_entries add column if not exists paid_at timestamptz;
+alter table ledger_entries add column if not exists paid_by text;
+alter table ledger_entries add column if not exists payment_reference text;
+alter table ledger_entries add column if not exists payment_method text;
+
+-- UGC rights / licensing (part (b)). Enums first (run individually if wrapped).
+do $$ begin
+  create type rights_status as enum ('proposed','accepted','declined','revoked','expired');
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create type rights_usage as enum ('organic','paid','both');
+exception when duplicate_object then null; end $$;
+
+create table if not exists rights_agreements (
+  id uuid primary key default gen_random_uuid(),
+  submission_id uuid not null references submissions(id) on delete cascade,
+  campaign_id uuid not null references campaigns(id) on delete cascade,
+  creator_id uuid not null references creator_profiles(id) on delete cascade,
+  channels text[] default '{}',
+  usage rights_usage not null default 'organic',
+  duration_days int default 0,
+  territory text,
+  editing_allowed boolean not null default false,
+  fee numeric not null default 0,
+  expires_at date,
+  status rights_status not null default 'proposed',
+  proposed_by text,
+  proposed_at timestamptz not null default now(),
+  consented_by text,
+  consented_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists rights_agreements_submission_id_idx on rights_agreements (submission_id);
+alter table rights_agreements enable row level security;
+
+-- ── Campaign Operator Network migration (safe on existing DBs) ────
+alter type user_role add value if not exists 'operator';
+alter type ledger_type add value if not exists 'operator_fee';
+
+create table if not exists operator_profiles (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
+  display_name text not null,
+  business_info text,
+  specialties text[] default '{}',
+  portfolio_url text,
+  service_fee_note text,
+  conflicts_note text,
+  verified_outcomes int default 0,
+  repeat_brands int default 0,
+  payment_reliability int,
+  status text not null default 'applicant',
+  review_note text,
+  reviewed_by text,
+  created_at timestamptz not null default now()
+);
+create unique index if not exists operator_profiles_user_id_uq on operator_profiles (user_id);
+
+create table if not exists brand_operator_engagements (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references orgs(id) on delete cascade,
+  operator_user_id uuid not null references users(id) on delete cascade,
+  scope_note text,
+  campaign_ids uuid[] default '{}',
+  permissions text[] default '{}',
+  service_fee numeric not null default 0,
+  fee_model text not null default 'fixed',
+  start_at timestamptz,
+  expires_at timestamptz,
+  status text not null default 'proposed',
+  agreement_version int not null default 1,
+  proposed_by text,
+  accepted_at timestamptz,
+  revoked_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists campaign_proposals (
+  id uuid primary key default gen_random_uuid(),
+  engagement_id uuid not null references brand_operator_engagements(id) on delete cascade,
+  campaign_id uuid references campaigns(id) on delete set null,
+  org_id uuid not null references orgs(id) on delete cascade,
+  type text not null,
+  title text not null,
+  content jsonb not null default '{}',
+  version int not null default 1,
+  content_hash text,
+  status text not null default 'draft',
+  financial_impact numeric default 0,
+  rights_impact text,
+  created_by text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists proposal_approvals (
+  id uuid primary key default gen_random_uuid(),
+  proposal_id uuid not null references campaign_proposals(id) on delete cascade,
+  approved_version int not null,
+  decision text not null,
+  approved_by text not null,
+  note text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists audit_events (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid references orgs(id) on delete set null,
+  actor_user_id text,
+  action text not null,
+  subject_type text,
+  subject_id text,
+  data jsonb default '{}',
+  created_at timestamptz not null default now()
+);
+
+create table if not exists risk_signals (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid references orgs(id) on delete set null,
+  kind text not null,
+  severity text not null default 'low',
+  subject_type text,
+  subject_id text,
+  evidence jsonb default '{}',
+  status text not null default 'open',
+  created_at timestamptz not null default now()
+);
+
+-- Operator fees share the obligations ledger (creator/campaign become optional).
+alter table ledger_entries alter column creator_id drop not null;
+alter table ledger_entries alter column campaign_id drop not null;
+alter table ledger_entries add column if not exists operator_user_id uuid references users(id) on delete set null;
+alter table ledger_entries add column if not exists engagement_id uuid references brand_operator_engagements(id) on delete set null;

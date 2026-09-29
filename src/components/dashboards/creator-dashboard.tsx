@@ -81,17 +81,17 @@ export function CreatorDashboard() {
         <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle>Performance bonus</CardTitle>
-            <p className="text-sm text-slate-400">Progress toward your bonus tier</p>
+            <p className="text-sm text-slate-500">Progress toward your bonus tier</p>
           </CardHeader>
           <CardContent>
             <div className="flex items-end justify-between">
-              <span className="text-2xl font-semibold text-white">
+              <span className="text-2xl font-semibold text-slate-900">
                 {formatCurrency(bonusEarned)}
               </span>
-              <span className="text-xs text-slate-400">of {formatCurrency(3000)} cap</span>
+              <span className="text-xs text-slate-500">of {formatCurrency(3000)} cap</span>
             </div>
             <ProgressBar value={bonusEarned} max={3000} tone="green" className="mt-3" />
-            <p className="mt-3 text-xs text-slate-400">
+            <p className="mt-3 text-xs text-slate-500">
               Hit 1.5M views on the Coffee Swap campaign to unlock the next tier.
             </p>
           </CardContent>
@@ -108,11 +108,11 @@ export function CreatorDashboard() {
               return (
                 <div
                   key={a.id}
-                  className="flex items-center justify-between rounded-lg border border-white/5 bg-ink-800/50 p-3"
+                  className="flex items-center justify-between rounded-lg border border-slate-200 bg-ink-800/50 p-3"
                 >
                   <div>
-                    <p className="text-sm font-medium text-white">{camp?.name}</p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-sm font-medium text-slate-900">{camp?.name}</p>
+                    <p className="text-xs text-slate-500">
                       Role: {titleCase(a.role)}
                     </p>
                   </div>
@@ -133,12 +133,12 @@ export function CreatorDashboard() {
               return (
                 <Card key={s.id} className="p-3">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-medium text-white">{camp?.name}</p>
+                    <p className="text-sm font-medium text-slate-900">{camp?.name}</p>
                     <SubmissionBadge status={s.status} />
                   </div>
-                  <p className="mt-1 line-clamp-1 text-xs text-slate-400">{s.note}</p>
+                  <p className="mt-1 line-clamp-1 text-xs text-slate-500">{s.note}</p>
                   {s.reviewerNote && (
-                    <p className="mt-1 text-xs text-electric-300">
+                    <p className="mt-1 text-xs text-electric-600">
                       Reviewer: {s.reviewerNote}
                     </p>
                   )}
@@ -156,7 +156,7 @@ export function CreatorDashboard() {
               return (
                 <Card key={m.id} hover className="p-3">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-medium text-white">{camp?.name}</p>
+                    <p className="text-sm font-medium text-slate-900">{camp?.name}</p>
                     <Badge tone="green">
                       {formatCurrency(m.payRange.min)}–{formatCurrency(m.payRange.max)}
                     </Badge>

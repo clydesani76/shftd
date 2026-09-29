@@ -6,14 +6,32 @@ const hasSupabase =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+const hasAnthropic = !!process.env.ANTHROPIC_API_KEY;
+const hasOpenAI = !!process.env.OPENAI_API_KEY;
+const hasMetaAds = !!process.env.META_ACCESS_TOKEN;
+
 export const config = {
   // Demo mode is ON when explicitly set, OR whenever Supabase isn't configured.
   demoMode:
     process.env.NEXT_PUBLIC_DEMO_MODE === "true" || !hasSupabase,
   hasSupabase,
-  hasAI: !!process.env.OPENAI_API_KEY,
+  // AI is "live" when either provider key is present. Anthropic is preferred.
+  hasAI: hasAnthropic || hasOpenAI,
+  hasAnthropic,
+  hasOpenAI,
+  // Meta Ad Library — pulls a competitor's real, live ads when a token is set.
+  hasMetaAds,
   hasStripe: !!process.env.STRIPE_SECRET_KEY,
-  aiModel: process.env.SHFTD_AI_MODEL || "gpt-4o-mini",
+  // Campaign Operator Network — surfaces operator/engagement/proposal UX.
+  // On by default; approving a proposal records + audits the decision but does
+  // NOT auto-execute the underlying consequential change in this first release.
+  operatorNetwork: process.env.NEXT_PUBLIC_OPERATOR_NETWORK !== "false",
+  // Performance-based operator compensation is intentionally gated OFF for the
+  // first release (fixed / milestone fees only).
+  operatorPerformanceComp: process.env.NEXT_PUBLIC_OPERATOR_PERF_COMP === "true",
+  aiModel:
+    process.env.SHFTD_AI_MODEL ||
+    (hasAnthropic ? "claude-sonnet-4-6" : "gpt-4o-mini"),
   brand: {
     name: "SHFTD",
     positioning: "The Marketing Operating System",

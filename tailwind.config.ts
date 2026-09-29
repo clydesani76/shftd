@@ -10,53 +10,87 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // SHFTD brand palette — minimal, futuristic, dark.
+        // SHFTD — dark engineering-studio palette. Black primary surfaces,
+        // warm cream (#eddeb7) headings/accent. Token names kept so existing
+        // utility classes restyle app-wide.
         ink: {
-          900: "#06070d", // page background
-          800: "#0a0c16", // surface
-          700: "#10131f", // card
-          600: "#171b2b", // raised card
-          500: "#1e2336", // border-ish
+          900: "#08080a", // page background (deeper black)
+          800: "#101013", // subtle surface
+          700: "#17171b", // card (lifted off the page)
+          600: "#212128", // raised / hover
+          500: "#34343d", // border-ish
         },
+        // Neutral ramp REMAPPED to a dark-theme (inverted) scale so every
+        // existing slate utility flips correctly: text-slate-900 = light text,
+        // border-slate-200 = dark hairline, bg-slate-50 = lifted dark surface.
+        slate: {
+          50: "#1f1f24", // lifted nested surface (sits above cards)
+          100: "#26262c",
+          200: "#33333c", // main hairline border — brighter for separation
+          300: "#44444e",
+          400: "#78787f",
+          500: "#a6a6ad",
+          600: "#c7c7ce",
+          700: "#dadade",
+          800: "#ededf0",
+          900: "#f6f6f7",
+          950: "#ffffff",
+        },
+        // Secondary accent + heading color: warm cream. Used for headings (via
+        // `header`) and as the single accent (links, active, focus, chips).
         electric: {
-          DEFAULT: "#6c5ce7",
-          50: "#f0effe",
-          100: "#e0ddfd",
-          200: "#c2bbfb",
-          300: "#a394f8",
-          400: "#866ef2",
-          500: "#6c5ce7",
-          600: "#5640d6",
-          700: "#4733b3",
-          800: "#3a2c8f",
-          900: "#312874",
+          DEFAULT: "#eddeb7",
+          50: "#33301f",
+          100: "#46412a",
+          200: "#655c3b",
+          300: "#9a8b5c",
+          400: "#d0c091",
+          500: "#eddeb7",
+          600: "#eddeb7",
+          700: "#f1e8cd",
+          800: "#f6efdb",
+          900: "#faf6e9",
         },
+        // Tertiary accent: cool light steel to distinguish the "proven" path.
         cyber: {
-          DEFAULT: "#00e0d1", // teal accent
-          glow: "#22f5e6",
+          DEFAULT: "#cbd5e1",
+          glow: "#e2e8f0",
         },
+        // Headings: warm cream, legible on the black surfaces.
+        header: {
+          DEFAULT: "#eddeb7",
+          light: "#f3e9cc",
+        },
+        // Status colors brightened for contrast on dark.
         signal: {
-          green: "#27e6a4",
-          amber: "#ffb454",
-          red: "#ff5a7a",
+          green: "#34d399",
+          amber: "#fbbf24",
+          red: "#fb7185",
         },
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
+      borderRadius: {
+        // Tighter, more precise corners than the default SaaS-rounded look.
+        lg: "0.5rem",
+        xl: "0.625rem",
+        "2xl": "0.75rem",
+      },
       boxShadow: {
-        glow: "0 0 40px -10px rgba(108, 92, 231, 0.45)",
-        "glow-cyber": "0 0 40px -10px rgba(0, 224, 209, 0.45)",
-        card: "0 1px 0 0 rgba(255,255,255,0.03) inset, 0 8px 30px -12px rgba(0,0,0,0.6)",
+        // Subtle lift for depth against the deep-black page.
+        glow: "0 1px 3px 0 rgba(0,0,0,0.5)",
+        "glow-cyber": "0 1px 3px 0 rgba(0,0,0,0.5)",
+        card: "0 1px 3px 0 rgba(0,0,0,0.5), 0 1px 0 0 rgba(255,255,255,0.02) inset",
       },
       backgroundImage: {
         "grid-faint":
-          "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
+          "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
+        // Primary actions render as a warm cream fill (dark text on top).
         "electric-gradient":
-          "linear-gradient(135deg, #6c5ce7 0%, #00e0d1 100%)",
-        "radial-glow":
-          "radial-gradient(60% 60% at 50% 0%, rgba(108,92,231,0.18) 0%, rgba(6,7,13,0) 100%)",
+          "linear-gradient(180deg, #f1e8cd 0%, #eddeb7 100%)",
+        "radial-glow": "none",
       },
       keyframes: {
         "fade-in": {

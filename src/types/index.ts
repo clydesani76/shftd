@@ -8,7 +8,7 @@ export type UUID = string;
 export type ISODate = string;
 
 // ── Roles & identity ──────────────────────────────────────────
-export type UserRole = "business" | "creator" | "admin";
+export type UserRole = "business" | "creator" | "admin" | "operator";
 
 export interface AppUser {
   id: UUID;
@@ -155,6 +155,8 @@ export interface Campaign {
   budget: number;
   basePayPool: number;
   performanceBonusPool: number;
+  // Set when the brand approves the brief; required before publishing.
+  briefApprovedAt?: ISODate;
   createdAt: ISODate;
 }
 
@@ -196,8 +198,12 @@ export interface Submission {
   contentUrl?: string;
   fileName?: string;
   note: string;
+  publicationDate?: ISODate;
+  evidenceUrl?: string;
   status: SubmissionStatus;
   reviewerNote?: string;
+  reviewedBy?: string;
+  reviewedAt?: ISODate;
   submittedAt: ISODate;
 }
 
@@ -230,23 +236,74 @@ export interface SavedCopy {
   savedAt: ISODate;
 }
 
+// AI-generated image saved (and hosted) for a campaign's creative library.
+export interface CampaignAsset {
+  id: UUID;
+  orgId: UUID;
+  campaignId?: UUID;
+  url: string; // public Storage URL (or data URL in demo mode)
+  prompt: string;
+  size: string; // e.g. "1024x1024"
+  provider: string; // "openai" | "placeholder" | ...
+  createdAt: ISODate;
+}
+
 // ── Payouts & ledger ──────────────────────────────────────────
 export type LedgerType =
   | "base_pay"
   | "performance_bonus"
   | "sales_bonus"
+  | "licensing_fee"
+  | "operator_fee"
   | "payout";
 
-export type LedgerStatus = "pending" | "approved" | "paid";
+export type LedgerStatus =
+  | "pending"
+  | "approved"
+  | "paid"
+  | "failed"
+  | "disputed";
 
 export interface LedgerEntry {
   id: UUID;
   campaignId: UUID;
   creatorId: UUID;
+  submissionId?: UUID;
   type: LedgerType;
   amount: number;
   status: LedgerStatus;
   note?: string;
+  createdAt: ISODate;
+}
+
+// ── UGC rights / licensing ────────────────────────────────────
+export type RightsStatus =
+  | "proposed"
+  | "accepted"
+  | "declined"
+  | "revoked"
+  | "expired";
+
+// How the content may be used commercially.
+export type RightsUsage = "organic" | "paid" | "both";
+
+export interface RightsAgreement {
+  id: UUID;
+  submissionId: UUID;
+  campaignId: UUID;
+  creatorId: UUID;
+  channels: string[]; // permitted channels
+  usage: RightsUsage; // organic vs paid
+  durationDays: number;
+  territory: string;
+  editingAllowed: boolean; // editing / derivative permissions
+  fee: number; // licensing fee
+  expiresAt?: ISODate;
+  status: RightsStatus;
+  proposedBy?: string;
+  proposedAt: ISODate;
+  consentedBy?: string; // creator who explicitly consented
+  consentedAt?: ISODate;
   createdAt: ISODate;
 }
 

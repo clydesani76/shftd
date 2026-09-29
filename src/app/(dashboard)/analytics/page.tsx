@@ -1,17 +1,20 @@
 "use client";
 
-import { PageHeader, SectionLabel } from "@/components/ui/misc";
+import { PageHeader, SectionLabel, EmptyState } from "@/components/ui/misc";
 import { StatCard } from "@/components/ui/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge, PathBadge } from "@/components/ui/badge";
 import {
+  CompareBars,
   CompareLines,
   Donut,
   SimpleBars,
   CHART_COLORS,
 } from "@/components/charts/charts";
-import { getCampaign, getCampaigns, getMetrics } from "@/lib/data";
+import Link from "next/link";
+import { getCampaign } from "@/lib/data";
+import { useMetricsData, useCampaignsData } from "@/lib/workspace-data";
 import { formatCompact, formatCurrency } from "@/lib/utils";
 import {
   DollarSign,
@@ -21,6 +24,7 @@ import {
   Download,
   ThumbsUp,
   ThumbsDown,
+  BarChart3,
 } from "lucide-react";
 
 // Weekly proven vs original comparison (synthetic).
@@ -32,8 +36,32 @@ const COMPARE = [
 ];
 
 export default function AnalyticsPage() {
-  const metrics = getMetrics();
-  const campaigns = getCampaigns();
+  const { data: metrics } = useMetricsData();
+  const { data: campaigns } = useCampaignsData();
+
+  // Honest empty state: with no recorded metrics we show nothing to measure —
+  // never sample revenue/ROAS. (A real workspace has no metrics until a
+  // campaign runs and results are recorded.)
+  if (metrics.length === 0) {
+    return (
+      <div>
+        <PageHeader
+          title="Analytics & ROI"
+          subtitle="Did it work? Proven vs Original, head to head."
+        />
+        <EmptyState
+          icon={BarChart3}
+          title="No analytics yet"
+          description="ROAS and revenue are calculated from documented, attributed results and defined campaign costs. Once a campaign runs and its metrics are recorded, they appear here — no sample figures are shown."
+          action={
+            <Link href="/campaigns">
+              <Button variant="outline">Go to campaigns</Button>
+            </Link>
+          }
+        />
+      </div>
+    );
+  }
 
   const totalRevenue = metrics.reduce((s, m) => s + m.revenue, 0);
   const totalViews = metrics.reduce((s, m) => s + m.views, 0);
@@ -51,6 +79,31 @@ export default function AnalyticsPage() {
       .filter((m) => getCampaign(m.campaignId)?.path === p)
       .reduce((s, m) => s + m.revenue, 0),
   }));
+
+  // Average performance per path for the head-to-head comparison.
+  const byPath = (p: "proven" | "original") =>
+    metrics.filter((m) => getCampaign(m.campaignId)?.path === p);
+  const avg = (arr: typeof metrics, sel: (m: (typeof metrics)[number]) => number) =>
+    arr.length ? arr.reduce((s, m) => s + sel(m), 0) / arr.length : 0;
+  const proven = byPath("proven");
+  const original = byPath("original");
+  const headToHead = [
+    {
+      label: "Avg ROAS",
+      proven: +avg(proven, (m) => m.roas).toFixed(2),
+      original: +avg(original, (m) => m.roas).toFixed(2),
+    },
+    {
+      label: "Avg CTR %",
+      proven: +avg(proven, (m) => m.ctr).toFixed(2),
+      original: +avg(original, (m) => m.ctr).toFixed(2),
+    },
+    {
+      label: "Conv rate %",
+      proven: +avg(proven, (m) => (m.clicks ? (m.conversions / m.clicks) * 100 : 0)).toFixed(2),
+      original: +avg(original, (m) => (m.clicks ? (m.conversions / m.clicks) * 100 : 0)).toFixed(2),
+    },
+  ];
 
   return (
     <div>
@@ -75,7 +128,7 @@ export default function AnalyticsPage() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Proven vs Original — ROAS over time</CardTitle>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               Proven plays deliver faster, predictable returns; original plays
               build slower but compound.
             </p>
@@ -104,6 +157,24 @@ export default function AnalyticsPage() {
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
+            <CardTitle>Proven vs Original — head to head</CardTitle>
+            <p className="text-sm text-slate-500">
+              Average efficiency by strategy path across live campaigns.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <CompareBars
+              data={headToHead}
+              series={[
+                { key: "proven", name: "Safe & Proven", color: CHART_COLORS[1] },
+                { key: "original", name: "Bold & Original", color: CHART_COLORS[0] },
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Revenue by campaign</CardTitle>
           </CardHeader>
           <CardContent>
@@ -115,24 +186,24 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <CardTitle>What worked / what failed</CardTitle>
-            <p className="text-sm text-slate-400">Auto-summarized from performance.</p>
+            <p className="text-sm text-slate-500">Auto-summarized from performance.</p>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="rounded-lg border border-signal-green/20 bg-signal-green/5 p-3">
-              <p className="flex items-center gap-2 text-sm font-medium text-signal-green">
+              <p className="flex items-center gap-2 text-sm font-medium text-emerald-600">
                 <ThumbsUp className="h-4 w-4" /> What worked
               </p>
-              <ul className="mt-2 space-y-1 text-sm text-slate-300">
+              <ul className="mt-2 space-y-1 text-sm text-slate-600">
                 <li>• Honest POV hooks drove a 3.73x ROAS on the Coffee Swap.</li>
                 <li>• Igniter-led top of funnel kept CAC under $19.</li>
                 <li>• Q1 fresh-start framing hit the best ROAS on record (5.57x).</li>
               </ul>
             </div>
             <div className="rounded-lg border border-signal-red/20 bg-signal-red/5 p-3">
-              <p className="flex items-center gap-2 text-sm font-medium text-signal-red">
+              <p className="flex items-center gap-2 text-sm font-medium text-rose-600">
                 <ThumbsDown className="h-4 w-4" /> What failed
               </p>
-              <ul className="mt-2 space-y-1 text-sm text-slate-300">
+              <ul className="mt-2 space-y-1 text-sm text-slate-600">
                 <li>• &quot;Zero crash&quot; messaging underperformed (CTR 0.8%).</li>
                 <li>• Original 3PM play is early — ROAS still ramping (2.4x).</li>
               </ul>
@@ -147,7 +218,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardContent className="overflow-x-auto p-0">
             <table className="w-full text-sm">
-              <thead className="border-b border-white/5 text-left text-xs uppercase tracking-wide text-slate-500">
+              <thead className="border-b border-slate-200 text-left font-mono text-[10px] uppercase tracking-[0.12em] text-slate-500">
                 <tr>
                   <th className="px-4 py-3 font-medium">Campaign</th>
                   <th className="px-4 py-3 font-medium">Path</th>
@@ -158,17 +229,17 @@ export default function AnalyticsPage() {
                   <th className="px-4 py-3 font-medium">ROAS</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-slate-200">
                 {metrics.map((m) => {
                   const c = getCampaign(m.campaignId);
                   return (
-                    <tr key={m.id} className="hover:bg-white/[0.02]">
-                      <td className="px-4 py-3 font-medium text-white">{c?.name}</td>
+                    <tr key={m.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 font-medium text-slate-900">{c?.name}</td>
                       <td className="px-4 py-3">{c && <PathBadge path={c.path} />}</td>
-                      <td className="px-4 py-3 text-slate-300">{formatCompact(m.views)}</td>
-                      <td className="px-4 py-3 text-slate-300">{m.ctr}%</td>
-                      <td className="px-4 py-3 text-slate-300">{formatCompact(m.conversions)}</td>
-                      <td className="px-4 py-3 text-slate-300">{formatCurrency(m.revenue, true)}</td>
+                      <td className="px-4 py-3 text-slate-600">{formatCompact(m.views)}</td>
+                      <td className="px-4 py-3 text-slate-600">{m.ctr}%</td>
+                      <td className="px-4 py-3 text-slate-600">{formatCompact(m.conversions)}</td>
+                      <td className="px-4 py-3 text-slate-600">{formatCurrency(m.revenue, true)}</td>
                       <td className="px-4 py-3">
                         <Badge tone={m.roas >= 3 ? "green" : "amber"}>{m.roas}x</Badge>
                       </td>

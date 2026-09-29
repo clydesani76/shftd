@@ -79,11 +79,11 @@ export default function StrategyPage() {
         }
       />
 
-      <div className="mb-6 rounded-xl border border-white/5 bg-ink-800/40 p-4 text-sm text-slate-400">
+      <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
         SHFTD weighs live competitor intelligence against your{" "}
-        <span className="text-electric-300">Marketing Memory</span> to recommend
+        <span className="text-electric-600">Marketing Memory</span> to recommend
         a lower-risk proven play and a higher-upside original play. Every
-        recommendation explains <span className="text-white">why</span>.
+        recommendation explains <span className="text-slate-900">why</span>.
       </div>
 
       <div className="grid items-start gap-6 lg:grid-cols-2">
@@ -130,8 +130,8 @@ function StrategyCard({
     <Card
       className={
         isProven
-          ? "border-cyber/20 shadow-glow-cyber"
-          : "border-electric-500/20 shadow-glow"
+          ? "border-l-2 border-l-cyber"
+          : "border-l-2 border-l-electric-500"
       }
     >
       <CardHeader>
@@ -139,30 +139,30 @@ function StrategyCard({
           <PathBadge path={strategy.path} />
           <RiskBadge risk={strategy.riskLevel} />
         </div>
-        <h2 className="mt-2 flex items-center gap-2 text-xl font-semibold text-white">
+        <h2 className="mt-2 flex items-center gap-2 text-xl font-semibold text-header">
           {isProven ? (
-            <Target className="h-5 w-5 text-cyber" />
+            <Target className="h-5 w-5 text-teal-600" />
           ) : (
-            <Rocket className="h-5 w-5 text-electric-300" />
+            <Rocket className="h-5 w-5 text-electric-600" />
           )}
           {strategy.title}
         </h2>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-slate-300">{strategy.concept}</p>
+        <p className="text-sm text-slate-600">{strategy.concept}</p>
 
-        <div className="rounded-lg border border-white/5 bg-ink-800/50 p-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
             Why this is recommended
           </p>
-          <p className="mt-1 text-sm text-slate-300">{strategy.rationale}</p>
+          <p className="mt-1 text-sm text-slate-600">{strategy.rationale}</p>
         </div>
 
-        <div className="rounded-lg bg-white/[0.02] p-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
             Expected upside
           </p>
-          <p className="mt-1 text-sm text-slate-300">{strategy.expectedUpside}</p>
+          <p className="mt-1 text-sm text-slate-600">{strategy.expectedUpside}</p>
         </div>
 
         <Detail icon={BarChart2} label="Platforms">
@@ -195,7 +195,7 @@ function StrategyCard({
           <div className="space-y-2">
             {strategy.budgetSplit.map((b) => (
               <div key={b.label}>
-                <div className="mb-1 flex justify-between text-xs text-slate-400">
+                <div className="mb-1 flex justify-between text-xs text-slate-500">
                   <span>{b.label}</span>
                   <span>{b.percent}%</span>
                 </div>
@@ -231,7 +231,7 @@ function Detail({
 }) {
   return (
     <div>
-      <p className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-slate-500">
+      <p className="mb-2 flex items-center gap-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
         <Icon className="h-3.5 w-3.5" /> {label}
       </p>
       {children}

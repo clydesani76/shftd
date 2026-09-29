@@ -8,7 +8,9 @@
 
 import type {
   AIProvider,
+  AnalyzeCompetitorInput,
   AnalyzeInsightsInput,
+  CompetitorAnalysis,
   GenerateCopyInput,
   GenerateStrategiesInput,
   GeneratedCopy,
@@ -20,7 +22,7 @@ import { config } from "@/lib/config";
 const SYSTEM_PROMPT = `You are SHFTD's marketing strategist engine. You do not write captions in a vacuum — you think like a senior growth strategist. You analyze competitor activity, identify what works, what is overused, and where the white space is. You produce structured JSON only, matching the requested schema. Always explain WHY each recommendation makes sense.`;
 
 async function callLLM(userPrompt: string): Promise<string> {
-  if (!config.hasAI) {
+  if (!config.hasOpenAI) {
     throw new Error(
       "OPENAI_API_KEY not configured — openaiProvider should not be selected. Falling back to mockProvider.",
     );
@@ -70,6 +72,14 @@ export const openaiProvider: AIProvider = {
     const prompt = `Write ${input.count ?? 4} variants of ${input.type} copy for platform ${input.platform}, tone ${input.tone}, audience ${input.audience}, offer "${input.offer}", brand voice "${input.brandVoice}". Score each 0-100 for fit. Return JSON: { "variants": GeneratedCopy[] }`;
     const raw = await callLLM(prompt);
     return JSON.parse(raw).variants;
+  },
+
+  async analyzeCompetitor(
+    input: AnalyzeCompetitorInput,
+  ): Promise<CompetitorAnalysis> {
+    const prompt = `Measured competitive analysis of "${input.brandName}" for "${input.ourBrand}" (${input.industry}). Cover website, Google/SEO, social platforms, campaign types, offer/positioning with 0-100 scores, then two campaigns (proven + original) to out-compete them. Site context: ${input.siteContext || "none"}. Return the CompetitorAnalysis JSON object.`;
+    const raw = await callLLM(prompt);
+    return JSON.parse(raw) as CompetitorAnalysis;
   },
 };
 

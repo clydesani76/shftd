@@ -13,7 +13,7 @@ export function MobileNav() {
   const items = navForRole(role);
 
   return (
-    <nav className="flex gap-1 overflow-x-auto border-b border-white/5 bg-ink-800/40 px-3 py-2 lg:hidden">
+    <nav className="flex gap-1 overflow-x-auto border-b border-slate-200 bg-ink-800/40 px-3 py-2 lg:hidden">
       {items.map((item) => {
         const active =
           pathname === item.href || pathname.startsWith(item.href + "/");
@@ -25,8 +25,8 @@ export function MobileNav() {
             className={cn(
               "flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
               active
-                ? "bg-electric-500/15 text-white"
-                : "text-slate-400 hover:text-white",
+                ? "bg-electric-500/15 text-slate-900"
+                : "text-slate-500 hover:text-slate-900",
             )}
           >
             <Icon className="h-3.5 w-3.5" />
