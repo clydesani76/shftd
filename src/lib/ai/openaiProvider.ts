@@ -77,7 +77,10 @@ export const openaiProvider: AIProvider = {
   async analyzeCompetitor(
     input: AnalyzeCompetitorInput,
   ): Promise<CompetitorAnalysis> {
-    const prompt = `Measured competitive analysis of "${input.brandName}" for "${input.ourBrand}" (${input.industry}). Cover website, Google/SEO, social platforms, campaign types, offer/positioning with 0-100 scores, then two campaigns (proven + original) to out-compete them. Site context: ${input.siteContext || "none"}. Return the CompetitorAnalysis JSON object.`;
+    const prompt = `Measured competitive analysis of "${input.brandName}" for "${input.ourBrand}" (${input.industry}). Cover website, Google/SEO, social platforms, campaign types, offer/positioning with 0-100 scores. Also return "differentiators": 4-7 concrete, evidence-backed ways they operate DIFFERENTLY from us (cite the crawled pages and measured SEO). Then two campaigns (proven + original) to out-compete them; tie one to a measured keyword gap when present. Use measured numbers as fact; label estimates as estimates.
+MULTI-PAGE SITE CONTEXT (labeled by page): ${input.siteContext || "none"}
+MEASURED SEO (Ahrefs, treat as fact): ${input.seoContext || "none"}
+Return the CompetitorAnalysis JSON object including a "differentiators" string array.`;
     const raw = await callLLM(prompt);
     return JSON.parse(raw) as CompetitorAnalysis;
   },

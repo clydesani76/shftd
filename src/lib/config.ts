@@ -21,6 +21,13 @@ export const config = {
   hasOpenAI,
   // Meta Ad Library — pulls a competitor's real, live ads when a token is set.
   hasMetaAds,
+  // Ahrefs — ground-truth SEO/backlink/traffic data for deep competitor
+  // analysis. When absent, the analyzer degrades to crawl + LLM only.
+  hasAhrefs: !!process.env.AHREFS_API_KEY,
+  // Default market for Ahrefs organic data (ISO 3166-1 alpha-2, lowercase).
+  ahrefsCountry: (process.env.AHREFS_COUNTRY || "us").toLowerCase(),
+  // Our own domain, used to compute keyword/SEO gaps vs. a competitor.
+  ownDomain: process.env.SHFTD_OWN_DOMAIN || "",
   hasStripe: !!process.env.STRIPE_SECRET_KEY,
   // Campaign Operator Network — surfaces operator/engagement/proposal UX.
   // On by default; approving a proposal records + audits the decision but does

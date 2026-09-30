@@ -8,7 +8,7 @@ import { Badge, PathBadge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/misc";
 import { cn } from "@/lib/utils";
 import type { Competitor } from "@/types";
-import type { CompetitorAnalysis, GeneratedStrategy } from "@/lib/ai/types";
+import type { CompetitorAnalysis, GeneratedStrategy, SeoComparison } from "@/lib/ai/types";
 import {
   Sparkles,
   X,
@@ -27,6 +27,9 @@ import {
   ShieldCheck,
   Cpu,
   Newspaper,
+  TrendingUp,
+  Link2,
+  Zap,
 } from "lucide-react";
 
 const THREAT: Record<string, { tone: "green" | "amber" | "electric"; label: string }> = {
@@ -208,7 +211,28 @@ function Report({
           {meta.siteFetched
             ? "grounded in a live website fetch"
             : "website could not be fetched — estimates used"}
+          {analysis.pagesCrawled && analysis.pagesCrawled.length > 1
+            ? ` · ${analysis.pagesCrawled.length} pages crawled`
+            : ""}
+          {analysis.measuredSeo?.ok ? " · Ahrefs SEO data attached" : ""}
         </p>
+      )}
+
+      {/* The headline output: what they do differently from us */}
+      {analysis.differentiators && analysis.differentiators.length > 0 && (
+        <div className="rounded-lg border border-electric-500/30 bg-electric-500/[0.05] p-4">
+          <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-header">
+            <Crosshair className="h-4 w-4" /> What they&apos;re doing differently
+          </p>
+          <ul className="space-y-2">
+            {analysis.differentiators.map((d, i) => (
+              <li key={i} className="flex gap-2 text-sm text-slate-700">
+                <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-electric-600" />
+                <span>{d}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {/* Verified real-world signals scraped from their live site */}
@@ -259,6 +283,11 @@ function Report({
             )}
           </div>
         )}
+
+      {/* Measured SEO / search — ground truth from Ahrefs */}
+      {analysis.measuredSeo?.ok && analysis.measuredSeo.competitor && (
+        <MeasuredSeo seo={analysis.measuredSeo} />
+      )}
 
       {/* Real ads from the Meta Ad Library */}
       {analysis.liveAds && analysis.liveAds.length > 0 && (
@@ -511,6 +540,114 @@ function RecommendedCampaign({
         </Button>
       </div>
     </Card>
+  );
+}
+
+function MeasuredSeo({ seo }: { seo: SeoComparison }) {
+  const c = seo.competitor!;
+  const o = seo.ours;
+  const fmt = (n: number | null | undefined) =>
+    typeof n === "number" ? n.toLocaleString() : "—";
+  const stat = (label: string, comp: number | null | undefined, ours?: number | null) => (
+    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">{label}</p>
+      <p className="mt-0.5 font-mono text-lg font-semibold tabular-nums text-header">{fmt(comp)}</p>
+      {o && (
+        <p className="font-mono text-[11px] tabular-nums text-slate-400">us {fmt(ours)}</p>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="rounded-lg border border-teal-500/25 bg-teal-500/[0.04] p-4">
+      <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-teal-700">
+        <TrendingUp className="h-4 w-4" /> Measured search &amp; SEO · Ahrefs
+        <span className="font-normal text-teal-600/70">
+          — real data ({seo.country.toUpperCase()}), not estimated
+        </span>
+      </p>
+
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+        {stat("Domain Rating", c.domainRating, o?.domainRating)}
+        {stat("Organic /mo", c.orgTraffic, o?.orgTraffic)}
+        {stat("Keywords", c.orgKeywords, o?.orgKeywords)}
+        {stat("Top-3 kw", c.orgKeywordsTop3, o?.orgKeywordsTop3)}
+        {stat("Ref. domains", c.refDomains, o?.refDomains)}
+        {stat("Backlinks", c.backlinks, o?.backlinks)}
+      </div>
+
+      {typeof c.orgTrafficValueUsd === "number" && (
+        <p className="mt-2 text-xs text-slate-500">
+          Est. value of their organic traffic:{" "}
+          <span className="font-medium text-slate-700">
+            ${c.orgTrafficValueUsd.toLocaleString()}/mo
+          </span>
+          {typeof c.paidTraffic === "number" && c.paidTraffic > 0 && (
+            <> · running paid search (~{c.paidTraffic.toLocaleString()} visits across {fmt(c.paidKeywords)} keywords)</>
+          )}
+        </p>
+      )}
+
+      {c.topKeywords.length > 0 && (
+        <div className="mt-3">
+          <p className="mb-1.5 flex items-center gap-1 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
+            <Search className="h-3 w-3" /> Their top organic keywords
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {c.topKeywords.slice(0, 12).map((k) => (
+              <span
+                key={k.keyword}
+                className="inline-flex items-center gap-1 rounded border border-slate-200 bg-ink-700 px-2 py-0.5 text-xs text-slate-700"
+                title={`vol ${fmt(k.volume)} · KD ${k.difficulty ?? "?"}`}
+              >
+                {k.keyword}
+                <span className="font-mono text-[10px] text-slate-400">#{k.position ?? "?"}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {c.topPages.length > 0 && (
+        <div className="mt-3">
+          <p className="mb-1.5 flex items-center gap-1 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
+            <Link2 className="h-3 w-3" /> Their top traffic pages
+          </p>
+          <ul className="space-y-1">
+            {c.topPages.slice(0, 5).map((p) => (
+              <li key={p.url} className="flex items-baseline justify-between gap-2 text-xs">
+                <a href={p.url} target="_blank" rel="noreferrer" className="truncate text-electric-700 hover:underline">
+                  {p.url.replace(/^https?:\/\//, "")}
+                </a>
+                <span className="shrink-0 font-mono tabular-nums text-slate-400">
+                  ~{fmt(p.traffic)}/mo
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {seo.keywordGaps.length > 0 && (
+        <div className="mt-3 rounded-lg border border-electric-500/25 bg-electric-500/[0.05] p-3">
+          <p className="mb-1.5 flex items-center gap-1 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-header">
+            <Crosshair className="h-3 w-3" /> Keyword gaps — they rank, we don&apos;t
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {seo.keywordGaps.map((k) => (
+              <span
+                key={k.keyword}
+                className="inline-flex items-center gap-1 rounded border border-electric-500/30 bg-ink-700 px-2 py-0.5 text-xs text-slate-700"
+                title={`vol ${fmt(k.volume)} · KD ${k.difficulty ?? "?"}`}
+              >
+                {k.keyword}
+                <span className="font-mono text-[10px] text-slate-400">vol {fmt(k.volume)}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

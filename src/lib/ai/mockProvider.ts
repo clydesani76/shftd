@@ -300,6 +300,14 @@ export const mockProvider: AIProvider = {
         "No ownable cultural moment or movement — pure product marketing",
         "Thin high-intent SEO content — winnable search demand",
       ],
+      differentiators: [
+        `${brandName} leans on always-on paid social + creator testimonials, while ${ourBrand} can win with an ownable narrative they lack.`,
+        siteContext
+          ? "Their site emphasizes product specs over a point of view — a positioning gap to exploit."
+          : "Likely category-generic positioning based on norms (live pages weren't fully readable).",
+        "Under-invested on TikTok/YouTube versus their Instagram focus — an open channel for us.",
+        "Thin on high-intent, problem/solution SEO content — winnable search demand (connect an Ahrefs key for exact keyword gaps).",
+      ],
       recommendedCampaigns: [
         {
           path: "proven",
