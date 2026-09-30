@@ -103,6 +103,49 @@ export interface CompetitorLiveAd {
   platforms: string[]; // e.g. ["facebook", "instagram"]
 }
 
+// ── Measured SEO (Ahrefs) — ground truth, not AI estimates ────
+export interface SeoKeyword {
+  keyword: string;
+  volume: number | null;
+  position: number | null; // best organic position
+  traffic: number | null; // monthly organic traffic from this keyword
+  difficulty: number | null; // 0-100 keyword difficulty
+  branded?: boolean;
+}
+
+export interface SeoPage {
+  url: string;
+  traffic: number | null; // monthly organic traffic
+  keywords: number | null; // keywords the page ranks for
+  topKeyword?: string | null;
+}
+
+export interface DomainSeo {
+  domain: string;
+  domainRating: number | null; // 0-100
+  ahrefsRank: number | null;
+  orgTraffic: number | null; // monthly organic visits
+  orgKeywords: number | null;
+  orgKeywordsTop3: number | null;
+  orgTrafficValueUsd: number | null; // whole USD/month
+  paidTraffic: number | null;
+  paidKeywords: number | null;
+  backlinks: number | null;
+  refDomains: number | null;
+  topKeywords: SeoKeyword[];
+  topPages: SeoPage[];
+}
+
+export interface SeoComparison {
+  ok: boolean;
+  country: string;
+  competitor: DomainSeo | null;
+  ours: DomainSeo | null;
+  keywordGaps: SeoKeyword[]; // they rank, we don't — our openings
+  sharedKeywords: string[];
+  note?: string;
+}
+
 export interface CompetitorAnalysis {
   brandName: string;
   summary: string;
@@ -124,6 +167,14 @@ export interface CompetitorAnalysis {
   };
   // REAL ads pulled from the Meta Ad Library (not AI-generated).
   liveAds?: CompetitorLiveAd[];
+  // The single sharpest output: concrete, evidence-backed ways this competitor
+  // operates DIFFERENTLY from us (channels, content, offers, SEO, cadence).
+  differentiators?: string[];
+  // REAL measured SEO/search data from Ahrefs (not AI-generated). Attached
+  // independently of the model so the UI can show ground truth vs. estimates.
+  measuredSeo?: SeoComparison;
+  // Which pages we actually fetched from their live site for this read.
+  pagesCrawled?: string[];
 }
 
 export interface AnalyzeCompetitorInput {
@@ -133,8 +184,11 @@ export interface AnalyzeCompetitorInput {
   industry: string;
   ourBrand: string;
   ourAudience: string;
-  // Real page text fetched server-side (title, description, visible copy).
+  // Real page text fetched server-side (title, description, visible copy) —
+  // now aggregated across several key pages (home, pricing, product, blog…).
   siteContext?: string;
+  // Prompt-ready measured SEO context (Ahrefs) when available.
+  seoContext?: string;
 }
 
 // The single interface every AI provider must implement.

@@ -108,15 +108,21 @@ export const anthropicProvider: AIProvider = {
     input: AnalyzeCompetitorInput,
   ): Promise<CompetitorAnalysis> {
     const site = input.siteContext
-      ? `\n\nREAL signals fetched from their live site just now — treat as PRIMARY evidence and quote specifics. The "SOCIAL PROFILES FOUND ON SITE" and "MARKETING TECH DETECTED" lines are verified facts: base channel-presence and campaign-type reads on them (e.g. a Meta Pixel means they run Facebook/Instagram retargeting; Klaviyo means email lifecycle; a TikTok profile means active TikTok):\n"""\n${input.siteContext}\n"""`
+      ? `\n\nREAL signals fetched by crawling SEVERAL of their live pages just now (home, and where found: pricing, product/shop, about, blog, features — each section is labeled "=== PAGE: … ==="). Treat as PRIMARY evidence and quote specifics: actual prices/plans, product breadth, positioning language, and how much/what content they publish. The "SOCIAL PROFILES FOUND ON SITE" and "MARKETING TECH DETECTED" lines are verified facts: base channel-presence and campaign-type reads on them (e.g. a Meta Pixel means they run Facebook/Instagram retargeting; Klaviyo means email lifecycle; a TikTok profile means active TikTok):\n"""\n${input.siteContext}\n"""`
       : `\n\nNo live website content was retrievable, so base the read on category knowledge and the identifiers provided — and say so honestly in "sources" and "disclaimer".`;
 
+    const seo = input.seoContext
+      ? `\n\n${input.seoContext}\nUse these MEASURED numbers directly (cite them); do NOT round them into vague adjectives, and do NOT invent other precise metrics. The keyword gaps are concrete opportunities — build recommendations on them.`
+      : `\n\nNo measured SEO data was available for this read; clearly mark any search/SEO commentary as an estimate.`;
+
     const prompt = `Perform a rigorous, MEASURED competitive analysis of the competitor "${input.brandName}" for our brand "${input.ourBrand}" (industry: ${input.industry}; our audience: ${input.ourAudience}).
-Competitor identifiers — domain: ${input.domain || "unknown"}; social handle: ${input.socialHandle || "unknown"}.${site}
+Competitor identifiers — domain: ${input.domain || "unknown"}; social handle: ${input.socialHandle || "unknown"}.${site}${seo}
 
 Assess the competitor across: (1) their WEBSITE & UX, (2) GOOGLE / SEO / search presence, (3) SOCIAL PLATFORMS (Instagram, TikTok, YouTube, X, etc.), (4) the TYPES OF CAMPAIGNS they appear to run, and (5) their OFFER & POSITIONING. Score each dimension 0-100 with a concrete note. Give an overall competitive-strength score (0-100) and a threatLevel. For each channel, estimate presence and a 0-100 strength with a short assessment. List the campaign types they run with an intensity. List concrete strengths and exploitable gaps (white space).
 
-Then design EXACTLY TWO campaigns for "${input.ourBrand}" to out-compete "${input.brandName}" and drive major market growth: one path="proven" (Safe & Proven, attack their strengths with a lower-risk, pattern-matched play) and one path="original" (Bold & Original, seize a gap they ignore).
+Identify "differentiators": the 4-7 most important, CONCRETE ways "${input.brandName}" operates DIFFERENTLY from "${input.ourBrand}" — grounded in the crawled pages and measured SEO (e.g. "ranks #1 for 'X' driving ~N visits/mo we don't touch", "prices at $Y vs our $Z", "publishes weekly long-form guides; we don't", "runs TikTok-first UGC while we're IG-only"). Each must be specific and evidence-backed, not generic.
+
+Then design EXACTLY TWO campaigns for "${input.ourBrand}" to out-compete "${input.brandName}" and drive major market growth: one path="proven" (Safe & Proven, attack their strengths with a lower-risk, pattern-matched play) and one path="original" (Bold & Original, seize a gap they ignore). Tie at least one campaign to a measured keyword gap when SEO data is present.
 
 Where signals are estimated rather than measured, say so plainly — do NOT fabricate precise metrics (follower counts, exact traffic). Frame estimates as estimates.
 
@@ -131,6 +137,7 @@ Return a SINGLE JSON object exactly matching:
   "campaignTypes": [{ "type": string, "description": string, "intensity": "low"|"medium"|"high" }],
   "strengths": string[],
   "gaps": string[],
+  "differentiators": string[],
   "recommendedCampaigns": [{ "path": "proven"|"original", "title": string, "concept": string, "rationale": string, "riskLevel": "low"|"medium"|"high", "expectedUpside": string, "platforms": string[], "creatorRoles": ("igniter"|"amplifier"|"closer")[], "kpis": string[], "budgetSplit": [{ "label": string, "percent": number }] }],
   "sources": string[],
   "disclaimer": string

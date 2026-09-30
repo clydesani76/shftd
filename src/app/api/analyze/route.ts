@@ -5,11 +5,13 @@ export const maxDuration = 60;
 
 import { NextResponse } from "next/server";
 import { ai, mockProvider } from "@/lib/ai";
-import { fetchSiteContext } from "@/lib/ai/siteContext";
+import { fetchDeepSiteContext } from "@/lib/ai/siteContext";
 import { fetchMetaAds } from "@/lib/intel/metaAds";
+import { fetchSeoComparison, seoToPromptContext } from "@/lib/intel/ahrefs";
 import { listCompetitors } from "@/lib/db/competitors";
 import { getAnalysis, saveAnalysis } from "@/lib/db/analysis";
 import { ORG, BUSINESS_PROFILE } from "@/lib/mock/data";
+import { config } from "@/lib/config";
 import type { CompetitorAnalysis } from "@/lib/ai/types";
 
 // Defensive: a live model can occasionally omit a field. Coerce the response
@@ -34,6 +36,7 @@ function normalize(
     strengths: arr(a.strengths),
     gaps: arr(a.gaps),
     recommendedCampaigns: arr(a.recommendedCampaigns),
+    differentiators: arr<string>(a.differentiators),
     sources: arr<string>(a.sources).length ? arr<string>(a.sources) : ["AI analysis"],
     disclaimer:
       a.disclaimer ||
@@ -73,11 +76,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Competitor not found" }, { status: 404 });
   }
 
-  // Ground the analysis in real signals: their live site + their real ads from
-  // the Meta Ad Library (both best-effort, run in parallel).
-  const [site, liveAds] = await Promise.all([
-    fetchSiteContext(competitor.domain),
+  // Ground the analysis in real signals, all best-effort and run in parallel:
+  //  1) a DEEP crawl of their live site (home + pricing/product/about/blog…),
+  //  2) their real ads from the Meta Ad Library,
+  //  3) MEASURED SEO from Ahrefs (traffic, keywords, backlinks) for them vs. us.
+  const ourDomain = config.ownDomain || ORG.website;
+  const [site, liveAds, seo] = await Promise.all([
+    fetchDeepSiteContext(competitor.domain),
     fetchMetaAds({ brandName: competitor.brandName }),
+    fetchSeoComparison({ competitorDomain: competitor.domain, ourDomain }),
   ]);
 
   // Fold the real ad copy into the evidence Claude reasons over.
@@ -96,6 +103,8 @@ export async function POST(req: Request) {
       ? `${site.ok ? site.text : ""}${adsContext}`.trim()
       : undefined;
 
+  const seoContext = seo.ok ? seoToPromptContext(seo) : undefined;
+
   const input = {
     brandName: competitor.brandName,
     domain: competitor.domain,
@@ -104,6 +113,7 @@ export async function POST(req: Request) {
     ourBrand: ORG.name,
     ourAudience: BUSINESS_PROFILE.targetAudience,
     siteContext,
+    seoContext,
   };
 
   let analysis: CompetitorAnalysis;
@@ -122,10 +132,12 @@ export async function POST(req: Request) {
   }
 
   // Attach the REAL signals we gathered (independent of the AI): live-site
-  // fingerprints and real ads from the Meta Ad Library. Shown separately from
-  // AI estimates.
+  // fingerprints, real ads from the Meta Ad Library, measured Ahrefs SEO, and
+  // which pages we actually crawled. Shown separately from AI estimates.
   analysis.discovered = site.discovered;
   if (liveAds.length > 0) analysis.liveAds = liveAds;
+  if (seo.ok) analysis.measuredSeo = seo;
+  if (site.pagesCrawled.length > 0) analysis.pagesCrawled = site.pagesCrawled;
 
   try {
     await saveAnalysis(competitorId, analysis);
