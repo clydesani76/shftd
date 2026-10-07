@@ -1,0 +1,4 @@
+# The extra Python "toolkits" this project uses.
+# Install them all at once with:   pip install -r requirements.txt
+pandas      # works with tables of data (like Excel, but in Python)
+yfinance    # downloads free market data from Yahoo Finance

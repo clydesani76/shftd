@@ -1,0 +1,5 @@
+# Don't save downloaded data or the Python environment to GitHub
+data/
+results/
+.venv/
+__pycache__/
