@@ -35,8 +35,31 @@ Go to https://drive.google.com, open **Colab Notebooks**, double-click
 | ⚙️ Settings | Choose the data source, open time, opening-range length, watch window, and which day to chart |
 | 1️⃣ Load price data | Downloads 60 days of free 5-minute NQ candles from Yahoo, **or** lets you upload a TradingView export |
 | 2️⃣ Opening range study | For every day: the range high/low, which side broke first, and how far price went past it. Plus a summary |
-| 3️⃣ Chart one day | A candlestick chart of one day with the opening range drawn on it |
-| 💾 Download | Saves the results table as a CSV file for Excel, Numbers or Google Sheets |
+| 3️⃣ Backtest | Simulates the opening range breakout trade on every day, with your entry, stop, target, exit time and costs |
+| 4️⃣ Score card | Win rate, profit factor, average result per trade, total profit, worst drawdown, losing streak, plus an account growth chart |
+| 5️⃣ Chart one day | A candlestick chart of one day with the opening range, entry, exit, stop and target drawn on it |
+| 💾 Download | Saves the study and the trade list as CSV files for Excel, Numbers or Google Sheets |
+
+### Backtest rules
+
+The backtest waits for the opening range to finish, then trades the **first side that breaks**. One trade per day.
+Every choice is a setting in box 3️⃣:
+
+| Setting | Options |
+|---|---|
+| Entry | **On the break** (stop order 1 tick past the range) or **On a candle close** outside the range |
+| Direction | Both, long only, short only |
+| Stop | Other side of the range, middle of the range, or a fixed number of points |
+| Target | A multiple of your risk (2 = 2R), or 0 for no target |
+| Exit time | Any open trade is closed at this time (default 11:30) |
+| Range filter | Skip days when the opening range is bigger than X points |
+| Costs | NQ or MNQ, number of contracts, commission, slippage in ticks |
+
+To stay honest, the backtest is deliberately cautious:
+- Stop-order entries and exits, and time exits, lose the slippage you set. Target fills don't.
+- If price gaps past your entry or stop, you get the worse price.
+- If the stop and target are both hit inside one 5-minute candle, it counts as a **loss**.
+- Days where one candle breaks both sides of the range are skipped.
 
 Results table columns:
 
@@ -79,9 +102,10 @@ than Yahoo's 60 days. This option is mainly for if you upgrade later.
 | 2. First study | Opening range stats and charts for every day | **Done** |
 | 3. Better data | History that grows in Google Drive with every run | **Done** |
 | 3b. Years of data (optional, paid) | Buy older 1-minute history | Later |
-| 4. Setup detection | Your own setups as rules the computer can check | **Next** |
-| 5. Backtesting | Simulate entries, stops, targets and costs on past days | |
-| 6. Trade scoring | Grade each setup on win rate, expectancy and drawdown | |
+| 4. Setup detection | Opening range breakout as rules | **Done** |
+| 5. Backtesting | Simulate entries, stops, targets and costs on past days | **Done** |
+| 6. Trade scoring | Win rate, profit factor, expectancy, drawdown | **Done** (basic) |
+| 6b. Filters | Test what separates good days from bad (range size, gaps, news days, trend) | **Next** |
 | 7. Dashboard | See setups and results visually | |
 | 8. Paper trading | Run live on a simulated account | |
 | 9. Automation (optional) | Send orders to a broker, with safety limits | |
@@ -91,5 +115,5 @@ than Yahoo's 60 days. This option is mainly for if you upgrade later.
 - History starts at about **60 days** and grows from there. That's enough to build and
   try out tools, but trust results more as the history grows. Years of older data need a paid source.
 - Continuous contracts (`NQ=F`, `NQ1!`) jump a little at each quarterly roll.
-- These numbers describe what happened. They are **not** a backtest yet: no entries,
-  stops, slippage or commissions. That's Stage 5.
+- 5-minute candles can't show what happened *inside* a candle, which is why the backtest makes cautious assumptions.
+- A good backtest is not a promise. Results only start to mean something after 100+ trades.
