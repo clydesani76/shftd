@@ -19,7 +19,9 @@ You only need a Google account (the one you use for Gmail works).
    lives in your Google Drive in a folder called **Colab Notebooks**.
 4. In your copy, click **Runtime → Run all**.
 5. If a box says **"Warning: This notebook was not authored by Google"**, click **Run anyway**.
-6. Wait about 30 seconds. Results appear under each box.
+6. When Google asks **"Permit this notebook to access your Google Drive files?"**, click
+   **Connect to Google Drive**, pick your account, and click **Continue** / **Allow**.
+7. Wait about 30 seconds. Results appear under each box.
 
 ### Every time after that
 
@@ -46,7 +48,21 @@ Results table columns:
 | `broke_up` / `broke_down` | Did price ever trade beyond that side before the watch window ended |
 | `max_points_above` / `max_points_below` | Furthest price went past the range high / low |
 
-## Using TradingView data
+## Your growing price history
+
+Yahoo's free data only covers the **last 60 days**. To get around that, the notebook saves
+every download to **My Drive → NQ Research → nq_5m_history.csv** and adds new days to it
+each time you run it. The study then uses the whole saved history.
+
+**Run the notebook at least once a month** (once a week is safer) so no days are missed.
+Your history grows from about 60 days today to a full year by next October, for free.
+
+Don't want this? Untick **SAVE_HISTORY_TO_DRIVE** in the Settings box.
+
+## Using TradingView data (optional)
+
+TradingView's free plan has a small history limit, so its exports are usually *shorter*
+than Yahoo's 60 days. This option is mainly for if you upgrade later.
 
 1. In TradingView, open a chart of **`NQ1!`** (NASDAQ 100 E-mini Futures) on the **5m** timeframe.
 2. Scroll the chart left to load as much history as it allows. The export only includes loaded candles.
@@ -61,8 +77,9 @@ Results table columns:
 |---|---|---|
 | 1. Data | Load NQ candles (Yahoo or TradingView) | **Done** |
 | 2. First study | Opening range stats and charts for every day | **Done** |
-| 3. Better data | Years of 1-minute history | Next |
-| 4. Setup detection | Your own setups as rules the computer can check | |
+| 3. Better data | History that grows in Google Drive with every run | **Done** |
+| 3b. Years of data (optional, paid) | Buy older 1-minute history | Later |
+| 4. Setup detection | Your own setups as rules the computer can check | **Next** |
 | 5. Backtesting | Simulate entries, stops, targets and costs on past days | |
 | 6. Trade scoring | Grade each setup on win rate, expectancy and drawdown | |
 | 7. Dashboard | See setups and results visually | |
@@ -71,8 +88,8 @@ Results table columns:
 
 ## Limits right now
 
-- Yahoo's free data only goes back about **60 days**. That's fine for learning, but too little to trust a strategy.
-- TradingView exports are capped by your plan's bar limit.
+- History starts at about **60 days** and grows from there. That's enough to build and
+  try out tools, but trust results more as the history grows. Years of older data need a paid source.
 - Continuous contracts (`NQ=F`, `NQ1!`) jump a little at each quarterly roll.
 - These numbers describe what happened. They are **not** a backtest yet: no entries,
   stops, slippage or commissions. That's Stage 5.
