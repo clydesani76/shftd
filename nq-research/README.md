@@ -100,7 +100,7 @@ than Yahoo's 60 days. This option is mainly for if you upgrade later.
 
 | Stage | What you get | Status |
 |---|---|---|
-| 1. Data | Load NQ candles (Yahoo or TradingView) | **Done** |
+| 1. Data | Load stock candles (Yahoo or TradingView) | **Done** |
 | 2. First study | Opening range stats and charts for every day | **Done** |
 | 3. Better data | History that grows in Google Drive with every run | **Done** |
 | 3b. Years of data (optional, paid) | Buy older 1-minute history | Later |
