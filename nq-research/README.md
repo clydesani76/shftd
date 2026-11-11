@@ -1,6 +1,7 @@
-# NQ Research Platform
+# Opening Range Research
 
-Research NQ futures setups around the **9:30 AM New York open**.
+Research and backtest **stock** trades around the **9:30 AM New York open**.
+Pick any stock or ETF (QQQ by default).
 Everything runs **in your web browser**. Nothing to install.
 
 ## ▶ Open it
@@ -32,8 +33,8 @@ Go to https://drive.google.com, open **Colab Notebooks**, double-click
 
 | Box | What it does |
 |---|---|
-| ⚙️ Settings | Choose the data source, open time, opening-range length, watch window, and which day to chart |
-| 1️⃣ Load price data | Downloads 60 days of free 5-minute NQ candles from Yahoo, **or** lets you upload a TradingView export |
+| ⚙️ Settings | Choose the stock, the data source, opening-range length, watch window, and which day to chart |
+| 1️⃣ Load price data | Downloads 60 days of free 5-minute candles for your stock from Yahoo, **or** lets you upload a TradingView export |
 | 2️⃣ Opening range study | For every day: the range high/low, which side broke first, and how far price went past it. Plus a summary |
 | 3️⃣ Backtest | Simulates the opening range breakout trade on every day, with your entry, stop, target, exit time and costs |
 | 4️⃣ Score card | Win rate, profit factor, average result per trade, total profit, worst drawdown, losing streak, plus an account growth chart |
@@ -47,13 +48,14 @@ Every choice is a setting in box 3️⃣:
 
 | Setting | Options |
 |---|---|
-| Entry | **On the break** (stop order 1 tick past the range) or **On a candle close** outside the range |
-| Direction | Both, long only, short only |
-| Stop | Other side of the range, middle of the range, or a fixed number of points |
+| Entry | **On the break** (stop order 1 cent past the range) or **On a candle close** outside the range |
+| Direction | Both, long only, short only (shorting needs a margin account) |
+| Stop | Other side of the range, middle of the range, or a fixed amount per share |
 | Target | A multiple of your risk (2 = 2R), or 0 for no target |
 | Exit time | Any open trade is closed at this time (default 11:30) |
-| Range filter | Skip days when the opening range is bigger than X points |
-| Costs | NQ or MNQ, number of contracts, commission, slippage in ticks |
+| Range filter | Skip days when the opening range is bigger than $X per share |
+| Position size | Risk a fixed dollar amount per trade (default $100), or a fixed number of shares |
+| Costs | Commission per trade (Webull: $0 on US stocks) and slippage in cents per share |
 
 To stay honest, the backtest is deliberately cautious:
 - Stop-order entries and exits, and time exits, lose the slippage you set. Target fills don't.
@@ -66,15 +68,15 @@ Results table columns:
 | Column | Meaning |
 |---|---|
 | `range_high` / `range_low` | Highest and lowest price during the opening range |
-| `range_size` | High minus low, in NQ points |
+| `range_size` | High minus low, in dollars per share |
 | `first_break` | Which side price broke first after the range: `up`, `down`, `none`, or `same candle` |
 | `broke_up` / `broke_down` | Did price ever trade beyond that side before the watch window ended |
-| `max_points_above` / `max_points_below` | Furthest price went past the range high / low |
+| `max_move_above` / `max_move_below` | Furthest price went past the range high / low, in dollars per share |
 
 ## Your growing price history
 
 Yahoo's free data only covers the **last 60 days**. To get around that, the notebook saves
-every download to **My Drive → NQ Research → nq_5m_history.csv** and adds new days to it
+every download to **My Drive → Opening Range Research → QQQ_5m_history.csv** (one file per ticker) and adds new days to it
 each time you run it. The study then uses the whole saved history.
 
 **Run the notebook at least once a month** (once a week is safer) so no days are missed.
@@ -87,7 +89,7 @@ Don't want this? Untick **SAVE_HISTORY_TO_DRIVE** in the Settings box.
 TradingView's free plan has a small history limit, so its exports are usually *shorter*
 than Yahoo's 60 days. This option is mainly for if you upgrade later.
 
-1. In TradingView, open a chart of **`NQ1!`** (NASDAQ 100 E-mini Futures) on the **5m** timeframe.
+1. In TradingView, open a chart of your stock (e.g. **QQQ**) on the **5m** timeframe.
 2. Scroll the chart left to load as much history as it allows. The export only includes loaded candles.
 3. Click the small **down arrow next to your layout name** (top right of the chart) → **Export chart data…** → **Export**.
    A `.csv` file lands in your Downloads folder. (Exporting may need a paid TradingView plan.)
@@ -110,10 +112,15 @@ than Yahoo's 60 days. This option is mainly for if you upgrade later.
 | 8. Paper trading | Run live on a simulated account | |
 | 9. Automation (optional) | Send orders to a broker, with safety limits | |
 
+## Day trading rules for stocks
+
+The $25,000 "pattern day trader" rule was scrapped: the new FINRA rules took effect on
+June 4, 2026. But brokers have until **October 20, 2027** to switch over, so check
+whether Webull still limits your day trades before trading this every day.
+
 ## Limits right now
 
 - History starts at about **60 days** and grows from there. That's enough to build and
   try out tools, but trust results more as the history grows. Years of older data need a paid source.
-- Continuous contracts (`NQ=F`, `NQ1!`) jump a little at each quarterly roll.
 - 5-minute candles can't show what happened *inside* a candle, which is why the backtest makes cautious assumptions.
 - A good backtest is not a promise. Results only start to mean something after 100+ trades.
